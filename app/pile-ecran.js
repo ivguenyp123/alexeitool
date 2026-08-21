@@ -23,7 +23,7 @@
  */
 import { DOMAINES, HORAIRES, NIVEAUX } from '../lib/semaine.js';
 import { table } from '../lib/eleves.js';
-import { ici, GESTES } from '../lib/gestes.js';
+import { ici, GESTES, consigneDe } from '../lib/gestes.js';
 import { pile, deposer, attribuer, retirer, etat as etatPile, refus } from '../lib/pile.js';
 import { pour } from '../lib/attendus.js';
 import { textePile, anneeScolaire } from '../lib/contexte.js';
@@ -330,11 +330,14 @@ export function installerLaPile({ etat, sauver, attendus }) {
         + 'rien ne sera conclu sur eux.'
     ].filter(Boolean).join('\n');
 
-    await envoyer({ nom: g.nom, consigne: g.consigne, texte: r.texte, classe: t,
+    await envoyer({ nom: g.nom, consigne: consigneDe(g), texte: r.texte, classe: t,
                     palier: g.palier || 'mid', avant,
                     // Ce que le document exporté devra dire de lui-même — y compris ce
                     // qui manquait au moment de l'envoi.
                     exporte: { exercice: etat.pile.exercice,
+                               // La pile et la classe suivent : l'export en a besoin pour
+                               // reposer les corrections sur le texte réel des copies.
+                               pile: etat.pile, classe: t,
                                copies: etat.pile.copies.length,
                                sansCopie: r.etat.sansCopie.length,
                                sansReference: !etat.pile.reference } });

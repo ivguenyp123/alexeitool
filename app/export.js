@@ -25,13 +25,14 @@
  * l'inverse.
  */
 import { docx } from '../lib/docx.js';
-import { enBlocs, enTete, nu } from '../lib/miseenforme.js';
+import { nu } from '../lib/miseenforme.js';
+import { documentDeCorrection } from '../lib/document.js';
 
 const $ = (id) => document.getElementById(id);
 
 /** Ce que l'écran de sortie sait de ce qu'il affiche. Rempli au moment de l'envoi. */
 let courant = { nomDuGeste: '', exercice: '', modele: '', copies: 0,
-                sansCopie: 0, sansReference: false };
+                sansCopie: 0, sansReference: false, pile: null, classe: null, brut: '' };
 
 export function noterCeQuOnExporte(infos) { courant = { ...courant, ...infos }; }
 
@@ -47,10 +48,21 @@ function nomDeFichier(ext) {
   return `${base || 'correction'}-${jour}.${ext}`;
 }
 
-const lesBlocs = () => [
-  ...enTete({ ...courant, quand: leJour() }),
-  ...enBlocs($('sortieTexte').textContent || '')
-];
+/**
+ * Les blocs du document.
+ *
+ * Quand la réponse porte des corrections dans la forme attendue ET qu'on a la pile sous
+ * la main, on rend LES COPIES CORRIGÉES. Sinon on rend la prose telle quelle : un outil
+ * qui sort une page blanche parce qu'un analyseur n'a pas reconnu son entrée est un outil
+ * qu'on n'ouvre plus.
+ */
+const lesBlocs = () => documentDeCorrection(
+  // Le brut d'abord : il porte les numéros, et c'est eux qui rattachent une correction à
+  // une copie. L'écran est le repli quand on n'a pas le brut.
+  courant.brut || $('sortieTexte').textContent || '',
+  courant.pile, courant.classe,
+  { ...courant, quand: leJour() }
+).blocs;
 
 /**
  * Proposer un fichier au téléchargement.
@@ -75,47 +87,81 @@ const LARGEUR = 1000;
 const MARGE = 56;
 
 /**
- * Couper une ligne à la largeur disponible.
+ * ── L'IMAGE DOIT PORTER LE ROUGE, ELLE AUSSI ────────────────────────────────
  *
- * Mot à mot, et un mot plus long que la ligne est laissé tel quel plutôt que coupé au
- * milieu : une adresse ou un mot composé cassé en deux est illisible, un débordement se
- * voit et se comprend.
+ * La première version mesurait et dessinait le TEXTE NU d'un bloc. Simple — et le rouge,
+ * les ratures, le gras disparaissaient : l'image rendait une copie propre là où le Word
+ * rendait une copie corrigée. Or c'est précisément le rouge qu'on veut envoyer.
+ *
+ * On découpe donc en jetons qui portent chacun leur style, et on remplit les lignes
+ * jeton à jeton.
  */
-function couper(ctx, texte, large) {
-  const lignes = [];
-  let ligne = '';
-  for (const mot of String(texte).split(/\s+/)) {
-    const essai = ligne ? `${ligne} ${mot}` : mot;
-    if (ctx.measureText(essai).width <= large || !ligne) ligne = essai;
-    else { lignes.push(ligne); ligne = mot; }
+function jetons(bloc) {
+  const out = [];
+  for (const m of bloc.morceaux || []) {
+    // On coupe sur les espaces en les GARDANT : « dor dort » perdrait sa séparation, et
+    // deux mots corrigés se colleraient.
+    for (const bout of String(m.texte).split(/(\s+)/)) {
+      if (bout === '') continue;
+      out.push({ texte: bout, rouge: m.rouge, barre: m.barre,
+                 gras: m.gras || bloc.type === 'titre', taille: m.taille });
+    }
   }
-  if (ligne) lignes.push(ligne);
-  return lignes.length ? lignes : [''];
+  return out;
 }
 
-const POLICE = (bloc) => {
+const CORPS = 20;
+const POLICE = (bloc, jeton = {}) => {
   if (bloc.type === 'titre') {
     const t = { 1: 40, 2: 30, 3: 26, 4: 24 }[bloc.niveau] || 26;
-    return { police: `700 ${t}px Georgia, serif`, haut: t * 1.35, avant: t * 0.7 };
+    return { taille: t, police: `700 ${t}px Georgia, serif`, haut: t * 1.35, avant: t * 0.7 };
   }
-  return { police: '20px Georgia, serif', haut: 30, avant: 0 };
+  // `taille` est en demi-points chez Word ; ici en pixels. On la ramène à l'échelle.
+  const t = jeton.taille ? Math.round(jeton.taille * 1.1) : CORPS;
+  return { taille: t, police: `${jeton.gras ? '700 ' : ''}${t}px Georgia, serif`,
+           haut: 30, avant: 0 };
 };
+
+/** Remplir les lignes, jeton à jeton, sans jamais couper un mot en deux. */
+function enLignes(ctx, bloc, large) {
+  const lignes = [];
+  let ligne = [];
+  let x = 0;
+  for (const j of jetons(bloc)) {
+    ctx.font = POLICE(bloc, j).police;
+    const l = ctx.measureText(j.texte).width;
+    if (x + l > large && ligne.length && j.texte.trim()) {
+      lignes.push(ligne);
+      ligne = [];
+      x = 0;
+    }
+    // Un blanc en début de ligne ne sert à rien et décale tout le paragraphe.
+    if (!ligne.length && !j.texte.trim()) continue;
+    ligne.push({ ...j, large: l });
+    x += l;
+  }
+  if (ligne.length) lignes.push(ligne);
+  return lignes.length ? lignes : [[]];
+}
+
+const ROUGE = '#C00000';
+const GRIS = '#8B857C';
+const ACCENT = '#1B6B8C';
 
 function dessiner(blocs) {
   const mesure = document.createElement('canvas').getContext('2d');
 
   // Deux passes : une pour mesurer la hauteur totale, une pour peindre. Un canvas se
-  // redimensionne en s'effaçant, on ne peut donc pas grandir en cours de route.
+  // redimensionne en s'effaçant : on ne peut pas grandir en cours de route.
   const plan = [];
   let hauteur = MARGE;
   for (const b of blocs) {
     if (b.type === 'blanc') { hauteur += 14; plan.push({ bloc: b, lignes: [] }); continue; }
-    const { police, haut, avant } = POLICE(b);
-    mesure.font = police;
-    const retrait = b.type === 'puce' ? 28 + (b.niveau || 0) * 24 : 0;
-    const lignes = couper(mesure, nu(b), LARGEUR - MARGE * 2 - retrait);
-    hauteur += avant + lignes.length * haut + 6;
-    plan.push({ bloc: b, lignes, haut, police, retrait });
+    const { haut, avant } = POLICE(b);
+    const retrait = (b.type === 'puce' ? 28 + (b.niveau || 0) * 24 : 0) + (b.copie ? 22 : 0);
+    const lignes = enLignes(mesure, b, LARGEUR - MARGE * 2 - retrait);
+    hauteur += avant + lignes.length * haut + (b.mot ? 22 : 6);
+    plan.push({ bloc: b, lignes, haut, retrait });
   }
   hauteur += MARGE;
 
@@ -132,17 +178,56 @@ function dessiner(blocs) {
   let y = MARGE;
   for (const p of plan) {
     if (p.bloc.type === 'blanc') { y += 14; continue; }
-    ctx.font = p.police;
-    ctx.fillStyle = p.bloc.type === 'titre' ? '#1B6B8C' : '#22201C';
     y += POLICE(p.bloc).avant;
+    const haut0 = y;
+
     if (p.bloc.type === 'puce') {
+      ctx.font = POLICE(p.bloc, {}).police;
+      ctx.fillStyle = p.bloc.alerte ? ROUGE : '#22201C';
       ctx.fillText('—', MARGE + p.retrait - 24, y);
     }
-    for (const l of p.lignes) {
-      ctx.fillText(l, MARGE + p.retrait, y);
+
+    for (const ligne of p.lignes) {
+      let x = MARGE + p.retrait;
+      for (const j of ligne) {
+        const { police, taille } = POLICE(p.bloc, j);
+        ctx.font = police;
+        ctx.fillStyle = j.rouge || p.bloc.alerte ? ROUGE
+          : p.bloc.type === 'titre' ? ACCENT
+          : p.bloc.discret ? GRIS : '#22201C';
+        ctx.fillText(j.texte, x, y);
+        // La rature : c'est l'autre geste du stylo rouge, et sans elle le mot fautif et
+        // le mot correct se lisent comme deux mots de la phrase.
+        if (j.barre) {
+          ctx.strokeStyle = ctx.fillStyle;
+          ctx.lineWidth = Math.max(1, taille / 14);
+          ctx.beginPath();
+          ctx.moveTo(x, y + taille * 0.58);
+          ctx.lineTo(x + j.large, y + taille * 0.58);
+          ctx.stroke();
+        }
+        x += j.large;
+      }
       y += p.haut;
     }
-    y += 6;
+
+    /*
+     * LA COPIE DE L'ÉLÈVE porte un filet à gauche : posée à côté des vraies copies, elle
+     * doit se distinguer d'un coup d'œil de ce qu'on écrit à son sujet.
+     */
+    if (p.bloc.copie || p.bloc.mot) {
+      ctx.strokeStyle = '#C9C3B7';
+      ctx.lineWidth = p.bloc.copie ? 3 : 1;
+      if (p.bloc.copie) {
+        ctx.beginPath();
+        ctx.moveTo(MARGE + 6, haut0 - 4);
+        ctx.lineTo(MARGE + 6, y);
+        ctx.stroke();
+      } else {
+        ctx.strokeRect(MARGE - 8, haut0 - 8, LARGEUR - MARGE * 2 + 16, y - haut0 + 16);
+      }
+    }
+    y += p.bloc.mot ? 22 : 6;
   }
   return c;
 }

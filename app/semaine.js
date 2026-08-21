@@ -21,7 +21,7 @@
 import { JOURS, DOMAINES, REGIMES_DITS, NIVEAUX, HORAIRES,
          duJour, duree, minutes, dire, verdict, chevauchements } from '../lib/semaine.js';
 import { SEMAINE } from '../lib/exemple.js';
-import { ici } from '../lib/gestes.js';
+import { ici, consigneDe } from '../lib/gestes.js';
 import { texteDeGeste, texteSemaine, texteClasse } from '../lib/contexte.js';
 
 /*
@@ -295,7 +295,7 @@ function envoyerAvecGarde(g, brut, classe, precision) {
     combien && `${combien} prénom(s) remplacé(s) à l'envoi.`
   ].filter(Boolean).join('\n');
 
-  return envoyer({ nom: g.nom, consigne: g.consigne, texte, classe,
+  return envoyer({ nom: g.nom, consigne: consigneDe(g), texte, classe,
                    palier: g.palier || 'mid', avant });
 }
 
@@ -382,7 +382,7 @@ async function lancer(g, c) {
     combien && `${combien} prénom(s) remplacé(s) à l'envoi.`
   ].filter(Boolean).join('\n');
 
-  await envoyer({ nom: g.nom, consigne: g.consigne, texte, classe,
+  await envoyer({ nom: g.nom, consigne: consigneDe(g), texte, classe,
                   palier: g.palier || 'mid', avant });
 }
 

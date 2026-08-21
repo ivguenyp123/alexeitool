@@ -164,19 +164,30 @@ corrige quand même, mais il ne compte **aucune** erreur et il le dit : un
 décompte sans référence est un chiffre inventé, et il a l'aplomb d'un chiffre
 exact.
 
-**La correction sort de l'écran.** Deux boutons sous la réponse : **Word** et
-**Image**. Le `.docx` est écrit à la main — une centaine de lignes, aucune
+**Ce qui sort, ce sont les copies corrigées.** Pas une liste d'erreurs à côté
+d'une copie qu'on n'a pas sous les yeux : le texte de chaque élève **en entier**,
+les fautes barrées en rouge avec le bon mot à côté, ce qui revient chez lui, et
+le mot à recopier — encadré, prêt à découper. Deux boutons sous la réponse :
+**Word** et **Image**.
+
+Deux refus tiennent tout le reste. Une faute annoncée sur un mot **absent** de la
+copie n'est pas posée au hasard : elle est listée comme introuvable. Une faute
+sur un mot qui apparaît **plusieurs fois** n'est pas posée non plus — mesuré,
+« et → est » s'était posé sur le premier « et », celui qui était juste : le
+document inventait une faute et laissait la vraie intacte.
+
+L'ancien export gardait  Le `.docx` est écrit à la main — une centaine de lignes, aucune
 dépendance : un `.docx` n'est qu'une archive ZIP contenant du XML. Le raccourci
 habituel (du HTML renommé `.doc`) déclenche une alerte de sécurité à
 l'ouverture, et un enseignant qui voit ça en ouvrant la correction de sa classe
 ne recommence pas.
 
-Ce qui sort porte toujours son **en-tête de provenance** : quel modèle, quel
-jour, combien de copies — et les réserves. Que le texte attendu manquait. Que
-tant d'élèves n'avaient pas de copie. Une fois imprimée, la correction cesse
-d'être « ce que la machine a proposé » pour devenir « la correction » ; dans six
-mois, plus rien ne dira d'où viennent ces phrases si le document ne le dit pas
-lui-même.
+Il ne porte **aucun avertissement en tête**. La première version ouvrait chaque
+export sur un bloc de réserves — « proposition d'un modèle », « rien ici n'est un
+bilan ». L'intention était bonne, la place ne l'était pas : quand on imprime une
+correction pour la poser à côté des copies, on n'imprime pas la notice de l'outil
+qui l'a produite. Il reste une ligne, en bas, en petit. Les réserves qui comptent
+restent à l'écran, où elles servent **avant** d'imprimer.
 
 **Qui n'a pas rendu est nommé.** Vingt-deux copies pour vingt-six élèves : les
 quatre absents ne se manifestent pas tout seuls, et on ne s'en aperçoit qu'en

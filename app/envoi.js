@@ -33,7 +33,7 @@ const $ = (id) => document.getElementById(id);
 export async function envoyer({ nom, consigne, texte, classe, palier = 'mid', avant = '',
                                 exporte = {} }) {
   noterCeQuOnExporte({ nomDuGeste: nom, exercice: '', copies: 0, sansCopie: 0,
-                       sansReference: false, ...exporte });
+                       sansReference: false, brut: '', ...exporte });
   $('sortieNom').textContent = nom;
   $('sortieTexte').textContent = '';
   $('sortieEtat').textContent = 'Envoi…';
@@ -60,7 +60,12 @@ export async function envoyer({ nom, consigne, texte, classe, palier = 'mid', av
      */
     $('sortieTexte').textContent = restituer(j.texte, classe);
     // Ce que l'export devra dire de lui-même. Le modèle n'est connu qu'ici, à la réponse.
-    noterCeQuOnExporte({ modele: `${j.fournisseur} · ${j.modele}` });
+    /*
+     * Le BRUT part aussi — celui qui porte encore les numéros. L'export en a besoin : c'est
+     * le numéro qui rattache une correction à une copie de façon sûre, et l'écran, lui,
+     * n'affiche plus que des prénoms.
+     */
+    noterCeQuOnExporte({ modele: `${j.fournisseur} · ${j.modele}`, brut: j.texte });
 
     const m = [`${j.fournisseur} · ${j.modele}`];
     if (j.jetons) m.push(`${j.jetons.entree}+${j.jetons.sortie} jetons`);
