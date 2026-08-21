@@ -21,6 +21,7 @@
 import { JOURS, DOMAINES, REGIMES_DITS, NIVEAUX, HORAIRES,
          duJour, duree, minutes, dire, verdict, chevauchements } from '../lib/semaine.js';
 import { SEMAINE, CLASSE } from '../lib/exemple.js';
+import { ici } from '../lib/gestes.js';
 import { lire, ecrire, durable } from './stockage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -43,12 +44,11 @@ if (!etat.semaine) etat = { ...etat, semaine: structuredClone(SEMAINE), classe: 
  * obligerait à un clic tous les jours de l'année — et ce clic-là, personne ne le pardonne.
  * Le mercredi, le samedi et le dimanche, on montre le prochain jour de classe.
  */
-const CODES = { 1: 'lundi', 2: 'mardi', 4: 'jeudi', 5: 'vendredi' };
+const CODES = { 1: 'lundi', 2: 'mardi', 3: 'mercredi', 4: 'jeudi', 5: 'vendredi' };
 function jourDeDepart() {
-  const d = new Date().getDay();
-  if (CODES[d]) return CODES[d];
-  // Mercredi → jeudi ; week-end → lundi. On regarde en avant, jamais en arrière.
-  return d === 3 ? 'jeudi' : 'lundi';
+  // Le mercredi est travaillé ici. Seul le week-end renvoie au lundi suivant : on regarde
+  // en avant, jamais en arrière.
+  return CODES[new Date().getDay()] || 'lundi';
 }
 const AUJ = CODES[new Date().getDay()] || '';
 let jourOuvert = jourDeDepart();
@@ -95,7 +95,7 @@ function unMoment(c, index) {
   }
 
   n.append(quoi);
-  n.onclick = () => ouvrirEdition(index);
+  n.onclick = () => ouvrirMoment(index);
   return n;
 }
 
@@ -125,7 +125,7 @@ function rendre() {
     nav.append(b);
   }
 
-  $('voirTout').textContent = toutVoir ? 'Voir un seul jour' : 'Voir les quatre jours';
+  $('voirTout').textContent = toutVoir ? 'Voir un seul jour' : 'Voir toute la semaine';
 
   /* Le jour, ou les quatre. */
   const jour = $('jour');
@@ -189,6 +189,67 @@ function rendreBilan() {
     for (const l of lignes) ul.append(el('li', null, l));
     b.append(ul);
   }
+}
+
+/* ── Ce qu'on peut faire sur ce moment ────────────────────────────────────── */
+
+/**
+ * ── IL N'Y A AUCUN ÉCRAN QUI LISTE LES OUTILS ───────────────────────────────
+ *
+ * On touche un moment de la journée, et ce qu'on peut en faire est là. Personne ne
+ * cherchera jamais « un outil de préparation » : on a un créneau devant soi.
+ *
+ * Ce qui est proposé dépend du créneau RÉEL. Le travail en autonomie n'apparaît pas quand
+ * les deux groupes sont ensemble — personne n'est seul. « Peut-on éviter de dédoubler »
+ * n'apparaît que sur un créneau dédoublé. C'est la différence entre « voilà tout ce que je
+ * sais faire » et « voilà ce qui sert ici ».
+ */
+function ouvrirMoment(index) {
+  enEdition = index;
+  const c = etat.semaine[index];
+  if (!c) return;
+
+  $('momentTitre').textContent = `${c.jour[0].toUpperCase()}${c.jour.slice(1)} · `
+    + `${dire(minutes(c.debut))} → ${dire(minutes(c.fin))}`;
+  $('momentQuoi').textContent = c.regime === 'commun'
+    ? `${REGIMES_DITS[c.regime]} · ${nomDomaine(c.domaine)}`
+    : `${REGIMES_DITS[c.regime]} · CE2 ${nomDomaine(c.CE2?.domaine || c.domaine)}`
+      + ` · CM1 ${nomDomaine(c.CM1?.domaine || c.domaine)}`;
+
+  const zone = $('gestes');
+  zone.textContent = '';
+  for (const g of ici('creneau', c)) {
+    const b = el('button', 'geste');
+    b.type = 'button';
+    b.append(el('b', null, g.nom));
+    b.append(el('small', 'lit', `lit : ${g.lit}`));
+    /*
+     * CE QU'IL NE FERA JAMAIS, SUR LE BOUTON.
+     *
+     * Pas dans une aide qu'on ouvre, pas dans une page « à propos » : là, avant qu'on
+     * clique. C'est la seule place où quelqu'un le lira vraiment, et c'est ce qui
+     * distingue un outil d'aide d'un outil qui décide.
+     */
+    b.append(el('small', 'jamais', `ne fera jamais : ${g.jamais}`));
+    b.onclick = () => direPasEncore(g);
+    zone.append(b);
+  }
+
+  $('moment').showModal();
+}
+
+/**
+ * Rien n'est branché sur un modèle pour l'instant, et on le DIT.
+ *
+ * Un bouton qui ne fait rien est pire que pas de bouton : il fait douter de tout le reste.
+ * Tant que le fournisseur n'est pas choisi et que la question des productions d'élèves
+ * n'est pas tranchée, chaque geste annonce ce qu'il fera — et qu'il ne le fait pas encore.
+ */
+function direPasEncore(g) {
+  $('pasEncoreNom').textContent = g.nom;
+  $('pasEncoreRend').textContent = g.rend;
+  $('moment').close();
+  $('pasEncore').showModal();
 }
 
 /* ── L'édition d'un moment ────────────────────────────────────────────────── */
@@ -301,5 +362,8 @@ $('supprimer').onclick = () => {
 };
 
 $('voirTout').onclick = () => { toutVoir = !toutVoir; rendre(); };
+$('fermerMoment').onclick = () => $('moment').close();
+$('fermerPasEncore').onclick = () => $('pasEncore').close();
+$('modifierHoraire').onclick = () => { $('moment').close(); ouvrirEdition(enEdition); };
 
 rendre();

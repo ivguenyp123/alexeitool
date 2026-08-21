@@ -230,11 +230,28 @@ describe('la semaine livrée avec l\'outil', () => {
     assert.deepEqual(chevauchements(SEMAINE), []);
   });
 
-  test('les quatre jours font six heures chacun', () => {
+  test('elle suit le rythme de Paris — mercredi matin, mardi et vendredi à 15 h', () => {
+    /*
+     * Paris a gardé la semaine de quatre jours et demi. Un outil qui supposerait quatre
+     * journées de six heures se tromperait sur toute la ville — et les vingt-quatre heures
+     * réglementaires, elles, ne bougent pas.
+     */
+    const attendu = { lundi: 360, mardi: 270, mercredi: 180, jeudi: 360, vendredi: 270 };
+    let cumul = 0;
     for (const jour of JOURS) {
       const min = duJour(SEMAINE, jour).reduce((s, c) => s + duree(c), 0);
-      assert.equal(min, 360, `${jour} fait ${dire(min)}`);
+      assert.equal(min, attendu[jour], `${jour} fait ${dire(min)}`);
+      cumul += min;
     }
+    assert.equal(cumul, 24 * 60, 'la semaine doit tomber sur 24 h pile');
+  });
+
+  test('le mercredi ne reçoit que du quotidien', () => {
+    // Trois heures ne suffisent pas à installer une notion nouvelle : le mercredi porte
+    // le français et les mathématiques, pas ce qui demande de la durée.
+    const domaines = new Set(duJour(SEMAINE, 'mercredi')
+      .map((c) => c.domaine || c.CE2?.domaine));
+    assert.deepEqual([...domaines].sort(), ['francais', 'mathematiques']);
   });
 
   test('elle utilise l\'alternance sur des domaines différents', () => {

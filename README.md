@@ -92,6 +92,42 @@ elle n'existe nulle part ailleurs.
 Tout est **sur la machine**. Si le navigateur refuse d'enregistrer, l'écran le
 dit au lieu de laisser croire que le travail est gardé.
 
+### Où sont les agents ? Nulle part — et partout
+
+**Il n'y a aucun écran qui liste ce que l'outil sait faire.** C'est la leçon la
+plus chère payée ailleurs : une grille de cartes qu'on fait défiler est une
+machine à ne pas trouver. Un enseignant ne cherchera jamais « un outil de
+correction » ; il a une pile de copies devant lui.
+
+La règle tient en une ligne :
+
+> **Un geste se range là où vit ce qu'il lit.**
+
+| Il lit… | Il est… |
+|---|---|
+| une séance | **sur le créneau**, dans la journée |
+| une pile de copies | **sur la pile**, quand elle existe |
+| un élève | **sur la fiche de l'élève** |
+| la période | **sur la période** |
+| toute la semaine | **sur la semaine** |
+
+On ne navigue donc jamais vers un outil : on est déjà devant la chose, et ce
+qu'on peut en faire est là. C'est le même principe que le routage par capacité
+de l'outil technique — trouver par ce qu'on a sous la main, pas par le nom —
+mais rendu **spatial**, parce qu'un enseignant navigue dans le temps et dans les
+objets, pas dans une barre de recherche.
+
+**Et ce qui est proposé dépend de l'objet réel.** Le travail en autonomie
+n'apparaît pas quand les deux groupes sont ensemble : personne n'est seul. La
+dictée ne se propose pas sur un créneau de sport. C'est la différence entre
+« voilà tout ce que je sais faire » et « voilà ce qui sert ici ».
+
+Sur chaque geste, avant qu'on clique : **ce qu'il lit**, et **ce qu'il ne fera
+jamais**. Pas dans une aide que personne n'ouvre — sur le bouton.
+
+Rien n'est branché sur un modèle, et l'écran le dit. Un bouton qui ne fait rien
+est pire que pas de bouton.
+
 ### Les modules
 
 Trois modules purs, testés, sans aucune dépendance. Ce sont les fondations qui
@@ -124,7 +160,8 @@ n'a presque rien, qui est souvent le discret, celui qui ne gêne pas.
 ### `lib/semaine.js` — la grille qui dit quand elle ne boucle pas
 
 Les horaires réglementaires des deux cycles, en dur, parce que ce sont des
-chiffres. Trois régimes de créneau — **ensemble**, **en alternance**,
+chiffres. **Cinq jours** — Paris a gardé la semaine de quatre jours et demi :
+mercredi matin travaillé, mardi et vendredi jusqu'à 15 h. Trois régimes de créneau — **ensemble**, **en alternance**,
 **séparément** — parce qu'aucun outil d'emploi du temps ne modélise ce qu'un
 double niveau fait réellement.
 
@@ -136,7 +173,7 @@ Et `verdict()`, qui compare ce qui est posé à ce qui est dû et **nomme les
 ## Faire tourner
 
 ```bash
-npm test          # 47 vérifications, zéro dépendance
+npm test          # 63 vérifications, zéro dépendance
 npm start         # l'écran, sur http://localhost:8080
 ```
 

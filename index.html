@@ -43,6 +43,42 @@
   Une modale plutôt qu'une page : on modifie un horaire en regardant le reste de la
   journée, et revenir en arrière ne doit rien coûter.
 -->
+<!--
+  CE QU'ON PEUT FAIRE SUR CE MOMENT.
+
+  C'est l'écran qui remplace le catalogue : on ne navigue pas vers un outil, on touche un
+  moment de la journée et ce qu'on peut en faire est là. Ce qui apparaît dépend du créneau
+  réel, pas d'une liste figée.
+-->
+<dialog id="moment" class="edition feuille">
+  <div class="dedansFeuille">
+    <h2 id="momentTitre">Ce moment</h2>
+    <p class="quoiMoment" id="momentQuoi"></p>
+    <div class="gestes" id="gestes"></div>
+    <div class="boutons">
+      <button type="button" id="modifierHoraire">Modifier l'horaire ou les groupes</button>
+      <span class="sp"></span>
+      <button type="button" class="plein" id="fermerMoment">Fermer</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Un bouton qui ne fait rien est pire que pas de bouton : on dit ce qui manque. -->
+<dialog id="pasEncore" class="edition">
+  <div class="dedansFeuille">
+    <h2 id="pasEncoreNom"></h2>
+    <p class="note">Ce geste rendra : <b id="pasEncoreRend"></b></p>
+    <p class="note attente">Il n'est <b>pas encore branché</b>. Deux choses manquent, et
+      aucune n'est technique : choisir le fournisseur de modèle, et trancher ce qui peut
+      sortir de la machine quand il s'agit de productions d'élèves. Tant que ces deux-là
+      ne sont pas décidées, rien ne part.</p>
+    <div class="boutons">
+      <span class="sp"></span>
+      <button type="button" class="plein" id="fermerPasEncore">Compris</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="edition" class="edition">
   <form method="dialog" id="formEdition">
     <h2 id="editionTitre">Modifier ce moment</h2>
