@@ -7,7 +7,7 @@
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { CYCLE, lireAttendus, pour, couverture, manquants,
+import { CYCLE, lireAttendus, pour, mauvaiseGeneration, couverture, manquants,
          direLesAttendus } from '../lib/attendus.js';
 
 const SRC = 'éduscol, relevé le 2026-08-21';
@@ -99,5 +99,51 @@ describe('ce qui part au modèle', () => {
     const { texte } = direLesAttendus(registre, creneau);
     assert.match(texte, /Rien n'a été déposé pour CM1/);
     assert.match(texte, /tu n'inventes rien et tu le DIS/);
+  });
+});
+
+/* ══ LA GÉNÉRATION DE PROGRAMME ═══════════════════════════════════════════ */
+
+describe('servir le texte de la bonne génération', () => {
+  const nouveau = lireAttendus('- Se repérer dans le temps et le construire progressivement.',
+    { cycle: 2, domaine: 'questionner_le_monde', generation: 'nouveau', source: 'BO 2026' }).attendus;
+
+  test('le CE2 en 2026 est sur l\'ANCIEN : le nouveau texte ne lui est pas servi', () => {
+    /*
+     * Le pire cas possible : servir le mauvais programme. Il aurait exactement l'air du
+     * bon — mêmes formulations, même ton officiel — et personne ne verrait rien avant une
+     * inspection.
+     */
+    assert.deepEqual(pour(nouveau, 'questionner_le_monde', 'CE2', 2026), []);
+    assert.equal(pour(nouveau, 'questionner_le_monde', 'CE2', 2027).length, 1,
+                 'mais en 2027 le CE2 y passe, et il le reçoit');
+  });
+
+  test('le décalage est NOMMÉ, pas confondu avec « rien de déposé »', () => {
+    /*
+     * Sans ça, l'écran dirait « aucun texte déposé » pour un domaine qu'on vient de
+     * déposer. On chercherait une heure avant de comprendre.
+     */
+    const mg = mauvaiseGeneration(nouveau, 'questionner_le_monde', 'CE2', 2026);
+    assert.equal(mg.attendue, 'ancien');
+    assert.equal(mg.deposee, 'nouveau');
+    assert.equal(mg.combien, 1);
+
+    const c = { regime: 'decale', CE2: { domaine: 'questionner_le_monde' },
+                CM1: { domaine: 'histoire_geo_emc' } };
+    const t = direLesAttendus(nouveau, c, ['CE2', 'CM1'], 2026).texte;
+    assert.match(t, /ATTENTION — pour le CE2/);
+    assert.match(t, /programme NOUVEAU/);
+    assert.match(t, /relève du programme ANCIEN/);
+    assert.match(t, /Tu ne\s+l'utilises donc PAS/);
+  });
+
+  test('un domaine qui ne bascule pas ignore la génération', () => {
+    // Le français n'a qu'un programme : filtrer par génération y inventerait une
+    // distinction, et priverait le modèle d'un texte parfaitement valable.
+    const fr = lireAttendus('- Lire à voix haute avec fluidité un texte court.',
+      { cycle: 2, domaine: 'francais', generation: 'nouveau' }).attendus;
+    assert.equal(pour(fr, 'francais', 'CE2', 2026).length, 1);
+    assert.equal(mauvaiseGeneration(fr, 'francais', 'CE2', 2026), null);
   });
 });

@@ -35,13 +35,18 @@ import { lireAttendus } from '../lib/attendus.js';
 const RACINE = new URL('..', import.meta.url).pathname;
 
 /**
- * Les quatre documents. Les identifiants sont ceux d'éduscol au 21 août 2026.
+ * Les documents. Les identifiants sont ceux relevés le 21 août 2026.
  *
  * Ils sont écrits ici plutôt que devinés : les identifiants voisins ne se déduisent pas
  * (13954 est le français CE2, 13960 les maths CE2, mais 13996 est autre chose). Une URL
  * fabriquée par incrémentation téléchargerait le mauvais niveau sans que rien ne le dise.
+ *
+ * `generation` n'est renseignée QUE pour les domaines qui basculent. Ailleurs elle reste
+ * vide, et l'attendu vaut quelle que soit l'année — mettre « ancien » sur le français
+ * inventerait une distinction qui n'existe pas.
  */
 const DOCUMENTS = [
+  /* ── Les attendus de fin d'ANNÉE : français et mathématiques seulement ──── */
   { cycle: 2, niveau: 'CE2', domaine: 'francais',
     url: 'https://eduscol.education.fr/document/13954/download' },
   { cycle: 2, niveau: 'CE2', domaine: 'mathematiques',
@@ -49,7 +54,24 @@ const DOCUMENTS = [
   { cycle: 3, niveau: 'CM1', domaine: 'francais',
     url: 'https://eduscol.education.fr/document/13984/download' },
   { cycle: 3, niveau: 'CM1', domaine: 'mathematiques',
-    url: 'https://eduscol.education.fr/document/13990/download' }
+    url: 'https://eduscol.education.fr/document/13990/download' },
+
+  /* ── Les programmes de CYCLE : tout le reste ─────────────────────────────
+   *
+   * Éduscol ne publie pas d'attendus par année hors français-maths. Pour les autres
+   * domaines il n'existe que les programmes de cycle — qui portent leurs propres
+   * « attendus de fin de cycle ».
+   *
+   * Le découpage y sera plus grossier : ce sont des documents de plusieurs dizaines de
+   * pages, pas des listes d'une page. Beaucoup de lignes seront écartées, et il faudra
+   * relire. C'est dit à la fin du script.
+   */
+  { cycle: 3, niveau: 'CM1', domaine: 'tous', generation: 'ancien',
+    url: 'https://eduscol.education.gouv.fr/sites/default/files/document/programme-d-enseignement-du-cycle-3-2023-100806.pdf' },
+  { cycle: 2, niveau: 'CE2', domaine: 'histoire_geo_emc', generation: 'nouveau',
+    url: 'https://www.education.gouv.fr/sites/default/files/document/annexe-3-programme-d-histoire-geographie-cycle-2-516776.pdf' },
+  { cycle: 3, niveau: 'CM1', domaine: 'histoire_geo_emc', generation: 'nouveau',
+    url: 'https://www.education.gouv.fr/sites/default/files/document/annexe-4-programme-d-histoire-geographie-cycle-3-516779.pdf' }
 ];
 
 function extraireLeTexte(pdf) {
@@ -71,7 +93,8 @@ const tout = [];
 let ecarteesTotal = 0;
 
 for (const d of DOCUMENTS) {
-  process.stdout.write(`${d.niveau} ${d.domaine} … `);
+  process.stdout.write(`${d.niveau} ${d.domaine}`
+    + `${d.generation ? ` (${d.generation})` : ''} … `);
   let pdf;
   try {
     const r = await fetch(d.url);
@@ -85,8 +108,9 @@ for (const d of DOCUMENTS) {
 
   const texte = extraireLeTexte(pdf);
   const { attendus, ecartees } = lireAttendus(texte, {
-    cycle: d.cycle, domaine: d.domaine,
-    source: `éduscol, attendus de fin d'année ${d.niveau} — relevé le ${releve} · ${d.url}`
+    cycle: d.cycle, domaine: d.domaine, generation: d.generation || '',
+    source: `officiel, ${d.niveau}${d.generation ? ` — programme ${d.generation}` : ''}`
+          + ` — relevé le ${releve} · ${d.url}`
   });
   tout.push(...attendus);
   ecarteesTotal += ecartees.length;
@@ -106,8 +130,18 @@ writeFileSync(join(RACINE, 'registres/attendus.json'),
 console.log(`\n✓ ${tout.length} attendus dans registres/attendus.json`);
 console.log(`  ${ecarteesTotal} lignes écartées — titres, numéros de page, fragments.`);
 console.log('\nCE QU\'IL RESTE À FAIRE, ET SEUL UN ENSEIGNANT PEUT LE FAIRE :');
-console.log('  · relire le fichier et retirer ce qui n\'est pas un attendu ;');
-console.log('  · les autres domaines sont VIDES — éduscol ne publie d\'attendus par niveau');
-console.log('    qu\'en français et en mathématiques. Pour « Questionner le monde », les');
-console.log('    sciences, l\'histoire-géo, les arts et l\'EPS, il n\'existe que les');
-console.log('    programmes de cycle. L\'outil le dira au lieu de faire semblant.');
+console.log('');
+console.log('  1. RELIRE. Les programmes de cycle font des dizaines de pages : le découpage');
+console.log('     y est grossier, et beaucoup de lignes retenues n\'en sont pas. Retire ce');
+console.log('     qui n\'est pas un attendu — le fichier est du JSON lisible.');
+console.log('');
+console.log('  2. VÉRIFIER LES DATES DE BASCULE. `lib/programmes.js` dit que le CM1 passe');
+console.log('     au nouveau programme à la rentrée 2026 et le CE2 à celle de 2027, sur');
+console.log('     l\'EPS, l\'histoire-géo et les sciences. Ces dates viennent d\'une');
+console.log('     recherche, pas d\'une lecture du texte. Si elles sont fausses d\'un an,');
+console.log('     tout ce qui en dépend l\'est aussi.');
+console.log('');
+console.log('  3. CE QUI MANQUE ENCORE : le programme de cycle 2 consolidé (pour le CE2 sur');
+console.log('     « Questionner le monde »), et les annexes de sciences et technologie du');
+console.log('     BO 2026. Je n\'ai pas trouvé d\'adresse stable pour eux — les domaines');
+console.log('     concernés resteront vides, et l\'outil le dira au lieu de faire semblant.');
