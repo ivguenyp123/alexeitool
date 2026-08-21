@@ -164,6 +164,20 @@ corrige quand même, mais il ne compte **aucune** erreur et il le dit : un
 décompte sans référence est un chiffre inventé, et il a l'aplomb d'un chiffre
 exact.
 
+**La correction sort de l'écran.** Deux boutons sous la réponse : **Word** et
+**Image**. Le `.docx` est écrit à la main — une centaine de lignes, aucune
+dépendance : un `.docx` n'est qu'une archive ZIP contenant du XML. Le raccourci
+habituel (du HTML renommé `.doc`) déclenche une alerte de sécurité à
+l'ouverture, et un enseignant qui voit ça en ouvrant la correction de sa classe
+ne recommence pas.
+
+Ce qui sort porte toujours son **en-tête de provenance** : quel modèle, quel
+jour, combien de copies — et les réserves. Que le texte attendu manquait. Que
+tant d'élèves n'avaient pas de copie. Une fois imprimée, la correction cesse
+d'être « ce que la machine a proposé » pour devenir « la correction » ; dans six
+mois, plus rien ne dira d'où viennent ces phrases si le document ne le dit pas
+lui-même.
+
 **Qui n'a pas rendu est nommé.** Vingt-deux copies pour vingt-six élèves : les
 quatre absents ne se manifestent pas tout seuls, et on ne s'en aperçoit qu'en
 rendant la pile. Avec la règle qui va avec, répétée au modèle à chaque envoi :

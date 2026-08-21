@@ -386,3 +386,7 @@ button{font:inherit;cursor:pointer}
   border-radius:10px; background:var(--carte); color:var(--encre); resize:vertical;
 }
 .reference i{ color:var(--encre3); font-style:normal; }
+
+/* Les sorties d'un document : présentes, mais jamais devant « Fermer ». */
+#sortieWord, #sortieImage{ white-space:nowrap; }
+#sortieWord[disabled], #sortieImage[disabled]{ opacity:.45; cursor:not-allowed; }

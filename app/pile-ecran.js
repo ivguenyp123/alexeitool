@@ -331,7 +331,13 @@ export function installerLaPile({ etat, sauver, attendus }) {
     ].filter(Boolean).join('\n');
 
     await envoyer({ nom: g.nom, consigne: g.consigne, texte: r.texte, classe: t,
-                    palier: g.palier || 'mid', avant });
+                    palier: g.palier || 'mid', avant,
+                    // Ce que le document exporté devra dire de lui-même — y compris ce
+                    // qui manquait au moment de l'envoi.
+                    exporte: { exercice: etat.pile.exercice,
+                               copies: etat.pile.copies.length,
+                               sansCopie: r.etat.sansCopie.length,
+                               sansReference: !etat.pile.reference } });
   }
 
   /* ── Le formulaire ─────────────────────────────────────────────────────── */

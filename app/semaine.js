@@ -37,6 +37,7 @@ fetch('../registres/attendus.json')
 import { table, caviarder, restes } from '../lib/eleves.js';
 import { lire, ecrire, durable } from './stockage.js';
 import { envoyer } from './envoi.js';
+import { installerLExport } from './export.js';
 import { installerLaPile } from './pile-ecran.js';
 import { ouvrirPorte } from './porte.js';
 import { installerLaClasse } from './classe-ecran.js';
@@ -563,6 +564,8 @@ $('modifierHoraire').onclick = () => { $('moment').close(); ouvrirEdition(enEdit
 
 const classeEcran = installerLaClasse({ etat, sauver: () => ecrire(etat), apres: rendre });
 installerLaPile({ etat, sauver: () => ecrire(etat), attendus: () => ATTENDUS });
+
+installerLExport();
 
 rendre();
 verifierLaCle();
