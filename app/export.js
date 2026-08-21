@@ -25,7 +25,7 @@
  * l'inverse.
  */
 import { docx } from '../lib/docx.js';
-import { nu } from '../lib/miseenforme.js';
+import { nu, enMorceaux } from '../lib/miseenforme.js';
 import { documentDeCorrection } from '../lib/document.js';
 
 const $ = (id) => document.getElementById(id);
@@ -176,6 +176,44 @@ const ROUGE = '#C00000';
 const GRIS = '#8B857C';
 const ACCENT = '#1B6B8C';
 
+/**
+ * ── LE TABLEAU, EN COLONNES SUR L'IMAGE AUSSI ───────────────────────────────
+ *
+ * Une fiche de double niveau se lit côte à côte : ce que fait le CE2 pendant que le CM1
+ * travaille seul. Empilée, elle perd exactement ce qui la rend utile.
+ *
+ * Chaque cellule est découpée à la largeur de sa colonne, et la rangée prend la hauteur
+ * de la cellule la plus haute — sinon les colonnes se chevauchent dès qu'une consigne
+ * est plus longue que l'autre.
+ */
+function planDuTableau(ctx, bloc, large) {
+  const rangs = bloc.rangs || [];
+  const nbCol = Math.max(1, ...rangs.map((r) => r.length));
+  const GOUTTIERE = 16;
+  const colonne = Math.floor((large - GOUTTIERE * (nbCol - 1)) / nbCol);
+
+  const plan = rangs.map((rang, iRang) => {
+    const cells = Array.from({ length: nbCol }, (_, i) => {
+      const lignes = [];
+      for (const texte of rang[i] || []) {
+        /*
+         * Le gras `**ainsi**` est traité ICI aussi. Il ne l'était que côté Word : l'image
+         * affichait « **Objectif** » avec ses astérisques, au milieu d'une fiche par
+         * ailleurs propre.
+         */
+        const morceaux = enMorceaux(texte)
+          .map((m) => ({ ...m, gras: m.gras || iRang === 0 }));
+        lignes.push(...enLignes(ctx, { type: 'paragraphe', morceaux }, colonne));
+      }
+      return lignes;
+    });
+    const haut = Math.max(1, ...cells.map((c) => c.length)) * 28 + 14;
+    return { cells, haut, entete: iRang === 0 };
+  });
+  return { plan, colonne, gouttiere: GOUTTIERE,
+           hauteur: plan.reduce((s, r) => s + r.haut, 0) + 10 };
+}
+
 function dessiner(blocs) {
   const mesure = document.createElement('canvas').getContext('2d');
 
@@ -185,6 +223,12 @@ function dessiner(blocs) {
   let hauteur = MARGE;
   for (const b of blocs) {
     if (b.type === 'blanc') { hauteur += 14; plan.push({ bloc: b, lignes: [] }); continue; }
+    if (b.type === 'tableau') {
+      const t = planDuTableau(mesure, b, LARGEUR - MARGE * 2);
+      hauteur += t.hauteur + 12;
+      plan.push({ bloc: b, lignes: [], tableau: t });
+      continue;
+    }
     const { haut, avant } = POLICE(b);
     const retrait = (b.type === 'puce' ? 28 + (b.niveau || 0) * 24 : 0) + (b.copie ? 22 : 0);
     const lignes = enLignes(mesure, b, LARGEUR - MARGE * 2 - retrait);
@@ -206,6 +250,39 @@ function dessiner(blocs) {
   let y = MARGE;
   for (const p of plan) {
     if (p.bloc.type === 'blanc') { y += 14; continue; }
+
+    if (p.tableau) {
+      const { plan: rangs, colonne, gouttiere } = p.tableau;
+      for (const rang of rangs) {
+        // Le filet horizontal sous chaque rangée : sans lui, deux colonnes de longueurs
+        // différentes n'ont plus de ligne de lecture commune.
+        ctx.strokeStyle = '#E2DED5';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(MARGE, y - 6);
+        ctx.lineTo(LARGEUR - MARGE, y - 6);
+        ctx.stroke();
+
+        rang.cells.forEach((lignes, i) => {
+          let yc = y;
+          const x0 = MARGE + i * (colonne + gouttiere);
+          for (const ligne of lignes) {
+            let x = x0;
+            for (const j of ligne) {
+              ctx.font = POLICE({ type: 'paragraphe' }, j).police;
+              ctx.fillStyle = rang.entete ? ACCENT : '#22201C';
+              ctx.fillText(j.texte, x, yc);
+              x += j.large;
+            }
+            yc += 28;
+          }
+        });
+        y += rang.haut;
+      }
+      y += 12;
+      continue;
+    }
+
     y += POLICE(p.bloc).avant;
     const haut0 = y;
 
