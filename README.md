@@ -173,11 +173,39 @@ Et `verdict()`, qui compare ce qui est posé à ce qui est dû et **nomme les
 ## Faire tourner
 
 ```bash
-npm test          # 63 vérifications, zéro dépendance
+npm test          # 74 vérifications, zéro dépendance
 npm start         # l'écran, sur http://localhost:8080
 ```
 
 Node 20.12 ou plus. Rien à installer.
+
+## La clé DeepSeek
+
+```bash
+cp .env.exemple .env
+# ouvre .env, remplace la valeur par ta clé
+npm start
+```
+
+Au démarrage, le serveur dit s'il l'a trouvée.
+
+**Où elle vit, et pourquoi.** L'outil est une page statique : tout ce que la page
+connaît est lisible dans les outils de développement du navigateur. Il n'y a pas
+de « caché » côté client, seulement du « pas encore regardé ». Une clé posée là
+serait une clé publiée.
+
+Elle est donc lue par `serve.js`, **dans le processus**, et ne traverse jamais
+une réponse HTTP. La page appelle `/api/modele` sans jamais la voir —
+`/api/etat` répond `{ pret: true }`, rien de plus.
+
+`.env` est ignoré par git (`.env`, `.env.*`, `*.key`, `*.pem`). Seul
+`.env.exemple` est versionné : il ne porte que le **nom** de la variable.
+
+**Rien ne part sans caviardage.** La route refuse tout envoi que la page n'a pas
+marqué comme caviardé. C'est une déclaration, pas une preuve — le serveur ne
+connaît pas la classe, elle vit dans le navigateur. Mais le jour où un nouvel
+écran oublie l'étape, l'envoi est refusé au lieu de partir : l'oubli devient une
+erreur visible plutôt qu'une fuite silencieuse.
 
 ---
 

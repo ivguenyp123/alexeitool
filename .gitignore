@@ -2,6 +2,19 @@ node_modules/
 .DS_Store
 *.log
 
+# ── LA CLÉ ────────────────────────────────────────────────────────────────────
+#
+# Le geste naturel, quand on reçoit une clé, est de la déposer à côté du code :
+# c'est là qu'on la cherchera pour lancer le serveur. Un `git add -A` suffit
+# alors à la publier — et une clé publiée reste dans l'historique même effacée.
+#
+# `.env.exemple` reste versionné : il ne porte que le NOM de la variable.
+.env
+.env.*
+!.env.exemple
+*.key
+*.pem
+
 # Rien de ce qui touche un enfant ne rentre au dépôt.
 # La classe, les relevés, les copies vivent sur la machine de la classe.
 classe/
