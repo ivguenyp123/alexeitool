@@ -170,6 +170,13 @@ les fautes barrées en rouge avec le bon mot à côté, ce qui revient chez lui,
 le mot à recopier — encadré, prêt à découper. Deux boutons sous la réponse :
 **Word** et **Image**.
 
+Deux gestes, selon ce que le modèle donne. **Le mot corrigé est connu** : le
+fautif est barré, le bon écrit à côté. **Il ne l'est pas** — le modèle a
+seulement nommé la faute : le mot est **souligné en rouge** et sa nature écrite
+à côté. C'est exactement le geste d'un enseignant qui laisse l'élève trouver, et
+c'est déjà l'essentiel : voir les fautes tout de suite. Ce qu'on ne fait dans
+aucun des deux cas, c'est inventer la correction manquante.
+
 Deux refus tiennent tout le reste. Une faute annoncée sur un mot **absent** de la
 copie n'est pas posée au hasard : elle est listée comme introuvable. Une faute
 sur un mot qui apparaît **plusieurs fois** n'est pas posée non plus — mesuré,

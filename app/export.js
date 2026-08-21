@@ -131,7 +131,7 @@ function jetons(bloc) {
     // deux mots corrigés se colleraient.
     for (const bout of String(m.texte).split(/(\s+)/)) {
       if (bout === '') continue;
-      out.push({ texte: bout, rouge: m.rouge, barre: m.barre,
+      out.push({ texte: bout, rouge: m.rouge, barre: m.barre, souligne: m.souligne,
                  gras: m.gras || bloc.type === 'titre', taille: m.taille });
     }
   }
@@ -303,12 +303,15 @@ function dessiner(blocs) {
         ctx.fillText(j.texte, x, y);
         // La rature : c'est l'autre geste du stylo rouge, et sans elle le mot fautif et
         // le mot correct se lisent comme deux mots de la phrase.
-        if (j.barre) {
+        if (j.barre || j.souligne) {
+          // Barré : le mot est faux et le bon est à côté. Souligné : le mot est faux, et
+          // c'est à l'élève de trouver. Deux gestes différents, deux traits différents.
           ctx.strokeStyle = ctx.fillStyle;
           ctx.lineWidth = Math.max(1, taille / 14);
+          const hauteurTrait = j.barre ? taille * 0.58 : taille * 1.08;
           ctx.beginPath();
-          ctx.moveTo(x, y + taille * 0.58);
-          ctx.lineTo(x + j.large, y + taille * 0.58);
+          ctx.moveTo(x, y + hauteurTrait);
+          ctx.lineTo(x + j.large, y + hauteurTrait);
           ctx.stroke();
         }
         x += j.large;

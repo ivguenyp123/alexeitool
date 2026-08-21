@@ -1,6 +1,7 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { lireLaCorrection, lireUneErreur, affiner, apparier } from '../lib/correction.js';
+import { lireLaCorrection, lireUneErreur, estUneCorrection, affiner,
+         apparier } from '../lib/correction.js';
 import { marquer, parNature } from '../lib/marquage.js';
 import { documentDeCorrection } from '../lib/document.js';
 import { nu } from '../lib/miseenforme.js';
@@ -282,5 +283,70 @@ describe('les règles communes partent avec chaque consigne', () => {
     assert.match(TOUJOURS, /dites-le-moi/);
     // `\\s+` : l'interdiction est coupée par un retour à la ligne, elle reste entière.
     assert.match(TOUJOURS, /aucune\s+question/);
+  });
+});
+
+describe('une nature n\'est pas une correction', () => {
+  /*
+   * Relevé sur la deuxième vraie dictée. Au lieu de « parte → partent », le modèle a
+   * écrit « 2. « parte » → « accord sujet/verbe (3e personne du pluriel). » » : il NOMME
+   * la faute, il ne la corrige pas. Et comme la nature était entre guillemets, je la
+   * prenais pour le mot correct — douze « signalé mais introuvable », et pas une marque.
+   */
+  test('la numérotation de liste ne fait plus partie du mot fautif', () => {
+    assert.equal(lireUneErreur('12. « leur places » → « accord (nombre). »').ecrit,
+                 'leur places');
+  });
+
+  test('une nature est reconnue comme telle, et ne devient pas la correction', () => {
+    const e = lireUneErreur('3. « Ils marche » → « accord sujet/verbe (3e personne du pluriel). »');
+    assert.equal(e.ecrit, 'Ils marche');
+    assert.equal(e.attendu, '', 'on n\'invente pas le mot manquant');
+    assert.match(e.nature, /accord sujet\/verbe/);
+  });
+
+  test('une vraie correction reste une correction', () => {
+    assert.equal(estUneCorrection('dort'), true);
+    assert.equal(estUneCorrection('il est content'), true);
+    assert.equal(estUneCorrection('accord sujet/verbe (3e personne du pluriel).'), false);
+    assert.equal(estUneCorrection('erreur sur l\'adjectif démonstratif'), false);
+  });
+
+  test('sans correction, le mot est SOULIGNÉ et sa nature écrite à côté', () => {
+    // Le geste d'un enseignant qui laisse l'élève trouver. C'est déjà l'essentiel :
+    // voir les fautes tout de suite.
+    const m = marquer('Ils marche vite.',
+                      [{ ecrit: 'Ils marche', attendu: '', nature: 'accord sujet/verbe' }]);
+    assert.equal(m.posees, 1);
+    const mot = m.morceaux.find((x) => x.souligne);
+    assert.ok(mot, 'le mot fautif doit être souligné');
+    assert.equal(mot.barre, undefined, 'on ne barre pas ce qu\'on ne remplace pas');
+    assert.match(m.morceaux.map((x) => x.texte).join(''), /accord sujet\/verbe/);
+  });
+
+  test('avec correction, on barre et on écrit le bon mot', () => {
+    const m = marquer('Le chat dor.', [{ ecrit: 'dor', attendu: 'dort' }]);
+    assert.ok(m.morceaux.find((x) => x.barre));
+    assert.ok(!m.morceaux.some((x) => x.souligne));
+  });
+
+  test('la vraie réponse, en entier : douze fautes, zéro perdue', () => {
+    const copie = 'Se matin, Léo et sa petite sœur parte à l\'école. Ils marche doucement '
+      + 'sous la pluie. Dans leurs cartable, ils ont des cahier, une trousse bleu et deux '
+      + 'livre.';
+    const lignes = [
+      '1. « Se matin » → « erreur sur l\'adjectif démonstratif (orthographe lexicale). »',
+      '2. « parte » → « accord sujet/verbe (3e personne du pluriel). »',
+      '3. « Ils marche » → « accord sujet/verbe (3e personne du pluriel). »',
+      '4. « leurs cartable » → « accord nom/adjectif (nombre). »',
+      '5. « des cahier » → « accord nom/adjectif (nombre). »',
+      '6. « une trousse bleu » → « accord nom/adjectif (genre). »',
+      '7. « deux livre » → « accord nom/adjectif (nombre). »'
+    ].map(lireUneErreur);
+    assert.equal(lignes.filter(Boolean).length, 7);
+    const m = marquer(copie, lignes);
+    assert.equal(m.posees, 7);
+    assert.equal(m.introuvables.length, 0);
+    assert.equal(m.ambigues.length, 0);
   });
 });
