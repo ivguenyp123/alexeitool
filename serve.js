@@ -28,7 +28,19 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
                 '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
                 '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
 
-const CLE = process.env.DEEPSEEK_API_KEY || '';
+/*
+ * Deux noms, un seul sens.
+ *
+ * `DEEPSEEK_API_KEY` est le nom de la plateforme technique, et il ne doit pas diverger :
+ * c'est celui qu'attend `runtime/deepseek.js`, porté tel quel.
+ *
+ * `ALEXEI` est le nom du secret côté GitHub. Dans un Codespace ouvert depuis le dépôt, il
+ * arrive dans l'environnement sans que personne n'ait rien à recopier — et recopier une
+ * clé, c'est le geste qui la fait fuiter. On accepte donc les deux, et on repasse le
+ * second sous le premier pour que le client porté n'ait rien à savoir de tout ça.
+ */
+const CLE = process.env.DEEPSEEK_API_KEY || process.env.ALEXEI || '';
+if (CLE && !process.env.DEEPSEEK_API_KEY) process.env.DEEPSEEK_API_KEY = CLE;
 const MODELS = lireModeles();
 
 function lireModeles() {

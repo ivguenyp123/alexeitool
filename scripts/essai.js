@@ -11,6 +11,11 @@
 import { createMoteur } from '../runtime/moteur.js';
 import { readFileSync } from 'node:fs';
 
+// Même tolérance que le serveur : `ALEXEI` est le nom du secret côté GitHub.
+if (!process.env.DEEPSEEK_API_KEY && process.env.ALEXEI) {
+  process.env.DEEPSEEK_API_KEY = process.env.ALEXEI;
+}
+
 const models = [];
 for (const ligne of readFileSync(new URL('../registries/models.yaml', import.meta.url), 'utf8').split('\n')) {
   const debut = /^\s*-\s*tier:\s*(\S+)/.exec(ligne);

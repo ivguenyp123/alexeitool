@@ -1,0 +1,10 @@
+{
+  "name": "alexeitool",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "forwardPorts": [8080],
+  "portsAttributes": { "8080": { "label": "Ma semaine", "onAutoForward": "openBrowser" } },
+  "postAttachCommand": "npm start",
+  "customizations": {
+    "vscode": { "extensions": [] }
+  }
+}
