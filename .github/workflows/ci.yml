@@ -1,0 +1,54 @@
+# Ce qui tourne au dépôt à chaque poussée.
+#
+# ── LE TRAVAIL PRINCIPAL N'A PAS BESOIN DE LA CLÉ, ET C'EST VOULU ─────────────
+#
+# `lib/garde.js` est un module PUR : il décide avant tout appel réseau. Les refus — pas de
+# clé, envoi non caviardé, texte trop gros — se vérifient donc sans clé et sans connexion.
+#
+# Une CI qui exigerait un secret pour lancer ses tests serait une CI qu'on ne peut pas
+# faire tourner sur une fourche, ni relancer quand le secret expire. Le contrôle qui
+# protège le travail des enfants doit être le PLUS FACILE à exécuter, pas le plus fragile.
+#
+# ── L'ESSAI RÉEL EST À PART, ET IL SE DÉCLENCHE À LA MAIN ────────────────────
+#
+# Le second travail appelle vraiment DeepSeek. Il ne tourne pas à chaque poussée : chaque
+# exécution coûte de l'argent, et un budget qui se vide tout seul finit par couper l'outil
+# un dimanche soir de préparation.
+name: vérifications
+
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:          # pour lancer l'essai réel à la demande
+
+jobs:
+  verifier:
+    name: tests et garde des secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        # `fetch-depth: 0` : la garde des secrets interroge `git ls-files`. Un clone
+        # tronqué la ferait passer sur un index partiel — donc dire « rien trouvé » sans
+        # avoir tout regardé, ce qui est pire que de ne pas la lancer.
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: npm test          # dont test/secrets.test.js : aucune clé ne peut entrer
+
+  essai-reel:
+    name: un vrai appel au fournisseur
+    # Seulement à la demande : un appel par poussée viderait le budget sans rien apprendre
+    # de plus qu'un appel par semaine.
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - name: appeler le modèle
+        env:
+          # Le secret s'appelle ALEXEI côté GitHub ; le code lit DEEPSEEK_API_KEY. Le
+          # mappage est ici, en un seul endroit — plutôt que de renommer la variable dans
+          # le code, qui doit rester identique à celle de la plateforme technique.
+          DEEPSEEK_API_KEY: ${{ secrets.ALEXEI }}
+        run: node scripts/essai.js
