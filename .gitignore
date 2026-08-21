@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.log
+
+# Rien de ce qui touche un enfant ne rentre au dépôt.
+# La classe, les relevés, les copies vivent sur la machine de la classe.
+classe/
+eleves.json
