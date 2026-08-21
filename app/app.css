@@ -342,3 +342,34 @@ button{font:inherit;cursor:pointer}
   border-radius:10px; background:var(--carte); color:var(--encre);
 }
 .libre{ margin-top:.4rem; }
+
+/* La porte d'un objet : le bouton vit DANS le bilan, à l'endroit où la question se pose. */
+.porteBilan{
+  margin-top:.7rem; width:100%; font:inherit; font-weight:600;
+  padding:.55rem .8rem; border-radius:10px; cursor:pointer;
+  border:1px solid currentColor; background:transparent; color:inherit;
+}
+.porteBilan:hover{ background:rgba(127,127,127,.09); }
+
+/* La ligne de classe EST une porte : on la touche, elle ne mène pas à un menu. */
+.classe{ cursor:pointer; }
+.classe:hover{ text-decoration:underline; }
+
+/* Ce qu'un geste attend avant de pouvoir travailler. Sur le bouton, comme le reste. */
+.geste .exige{ color:var(--cm1); }
+.geste[disabled]{ opacity:.55; cursor:not-allowed; }
+
+/* ── LE BOUTON QUI COMPTE ──────────────────────────────────────────────────
+   Un seul, en grand, et il s'appelle « Corriger ». Tout le reste est replié. */
+.corriger{
+  width:100%; margin:.9rem 0 .25rem; padding:.85rem 1rem;
+  font:inherit; font-size:1.08rem; font-weight:700; cursor:pointer;
+  border:0; border-radius:var(--r); background:var(--accent); color:var(--papier);
+  box-shadow:var(--ombre);
+}
+.corriger:hover:not([disabled]){ filter:brightness(1.08); }
+.corriger[disabled]{ opacity:.45; cursor:not-allowed; box-shadow:none; }
+
+.reglages{ margin-top:1rem; border-top:1px solid var(--trait); padding-top:.8rem; }
+.reglages summary{ cursor:pointer; color:var(--accent); font-size:.9rem; }
+.reglages > *:not(summary){ margin-top:.7rem; }

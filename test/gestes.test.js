@@ -26,9 +26,32 @@ describe('chaque geste sait où il vit et ce qu\'il refuse', () => {
      * dans la tête de celui qui a codé le bouton.
      */
     for (const g of GESTES) {
-      for (const champ of ['nom', 'lit', 'rend', 'jamais']) {
+      /*
+       * Le nom du geste PRINCIPAL a le droit d'être court — c'est même tout l'intérêt.
+       *
+       * Cette règle exigeait onze caractères partout, et elle a contribué au défaut :
+       * des noms longs et fins (« Ce qui bloque, et pour qui »), et aucun qui dise
+       * simplement « Corriger ». Un nom court sur le bouton qu'on cherche vaut mieux
+       * qu'un nom juste sur un bouton qu'on ne trouve pas.
+       */
+      assert.ok(g.nom?.length > (g.principal ? 4 : 10),
+        `${g.id} : « nom » vide ou trop court`);
+      for (const champ of ['lit', 'rend', 'jamais']) {
         assert.ok(g[champ]?.length > 10, `${g.id} : « ${champ} » vide ou trop court`);
       }
+    }
+  });
+
+  test('un seul geste principal par ancrage, au plus', () => {
+    // Deux boutons en grand sur le même écran, c'est de nouveau un choix à faire avant
+    // d'avoir compris qu'on avait le choix.
+    const parAncrage = {};
+    for (const g of GESTES.filter((x) => x.principal)) {
+      parAncrage[g.ancrage] = (parAncrage[g.ancrage] || 0) + 1;
+      assert.ok(g.consigne, `${g.id} est principal mais n'a pas de consigne`);
+    }
+    for (const [a, n] of Object.entries(parAncrage)) {
+      assert.equal(n, 1, `${a} déclare ${n} gestes principaux`);
     }
   });
 

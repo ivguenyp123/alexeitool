@@ -139,6 +139,29 @@
 </dialog>
 
 <!--
+  LA FEUILLE D'UN OBJET : la semaine, la classe, plus tard une période, un élève.
+
+  On touche l'objet lui-même — le bilan des 24 heures en bas, la ligne « CE2-CM1 · 26
+  élèves » en haut — et ce qu'on peut en faire s'ouvre là. Il n'y a toujours aucun écran
+  qui liste les outils.
+-->
+<dialog id="porte" class="edition feuille">
+  <div class="dedansFeuille">
+    <h2 id="porteTitre">…</h2>
+    <p class="quoiMoment" id="porteQuoi" hidden></p>
+    <label class="precision">
+      <span>Une précision, si tu veux (facultatif)</span>
+      <input id="portePrecision" type="text">
+    </label>
+    <div class="gestes" id="porteGestes"></div>
+    <div class="boutons">
+      <span class="sp"></span>
+      <button type="button" class="plein" id="fermerPorte">Fermer</button>
+    </div>
+  </div>
+</dialog>
+
+<!--
   LA PILE DE COPIES.
 
   L'ordre des champs suit l'ordre du geste réel : on dépose D'ABORD, on renseigne ensuite.
@@ -182,30 +205,16 @@
     <p class="manque" id="pileManque" hidden></p>
     <div class="copies" id="pileCopies"></div>
 
-    <div class="rangee">
-      <label>Exercice
-        <input type="text" id="pileExercice" placeholder="Dictée du 12 mars"></label>
-      <label>Niveau
-        <select id="pileNiveau">
-          <option value="">les deux</option>
-          <option value="CE2">CE2</option>
-          <option value="CM1">CM1</option>
-        </select></label>
-      <label>Domaine <select id="pileDomaine"></select></label>
-    </div>
+    <!--
+      LE BOUTON. Un seul, en gros, et il s'appelle « Corriger ».
 
-    <label class="precision">
-      <span>La consigne telle qu'elle a été donnée aux élèves (facultatif)</span>
-      <textarea id="pileConsigne" rows="2"></textarea>
-    </label>
-
-    <label class="precision">
-      <span>L'attendu visé</span>
-      <select id="pileAttendu"></select>
-    </label>
-    <input type="text" id="pileAttenduLibre" class="libre" hidden
-           placeholder="l'attendu, tel que tu le formules">
-    <p class="note" id="pileAttenduNote"></p>
+      La première version n'offrait que cinq gestes savants — « ce qui bloque, et pour
+      qui », « les erreurs de la dictée, par nature ». Chacun utile, et aucun ne
+      s'appelant corriger. On dépose une dictée, on cherche le bouton, il n'existe pas :
+      c'est le catalogue qu'on s'était juré de ne pas refaire, déguisé en finesse.
+    -->
+    <button type="button" class="corriger" id="pileCorriger">Corriger</button>
+    <p class="note" id="pileCorrigerNote"></p>
 
     <label class="precision">
       <span>Une précision, si tu veux (facultatif)</span>
@@ -213,7 +222,42 @@
              placeholder="par exemple : dictée non préparée, faite en fin de journée">
     </label>
 
-    <div class="gestes" id="pileGestes"></div>
+    <!--
+      TOUT LE RESTE EST FACULTATIF, ET REPLIÉ.
+
+      Renseigner l'exercice, le niveau, le domaine et l'attendu améliore la réponse. Rien
+      de tout ça ne doit se dresser entre une pile de copies et sa correction.
+    -->
+    <details class="reglages">
+      <summary>Préciser l'exercice, ou demander autre chose</summary>
+
+      <div class="rangee">
+        <label>Exercice
+          <input type="text" id="pileExercice" placeholder="Dictée du 12 mars"></label>
+        <label>Niveau
+          <select id="pileNiveau">
+            <option value="">les deux</option>
+            <option value="CE2">CE2</option>
+            <option value="CM1">CM1</option>
+          </select></label>
+        <label>Domaine <select id="pileDomaine"></select></label>
+      </div>
+
+      <label class="precision">
+        <span>La consigne telle qu'elle a été donnée aux élèves</span>
+        <textarea id="pileConsigne" rows="2"></textarea>
+      </label>
+
+      <label class="precision">
+        <span>L'attendu visé</span>
+        <select id="pileAttendu"></select>
+      </label>
+      <input type="text" id="pileAttenduLibre" class="libre" hidden
+             placeholder="l'attendu, tel que tu le formules">
+      <p class="note" id="pileAttenduNote"></p>
+
+      <div class="gestes" id="pileGestes"></div>
+    </details>
 
     <div class="boutons">
       <span class="sp"></span>

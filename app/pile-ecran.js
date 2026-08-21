@@ -23,7 +23,7 @@
  */
 import { DOMAINES, HORAIRES, NIVEAUX } from '../lib/semaine.js';
 import { table } from '../lib/eleves.js';
-import { ici } from '../lib/gestes.js';
+import { ici, GESTES } from '../lib/gestes.js';
 import { pile, deposer, attribuer, retirer, etat as etatPile, refus } from '../lib/pile.js';
 import { pour } from '../lib/attendus.js';
 import { textePile, anneeScolaire } from '../lib/contexte.js';
@@ -260,7 +260,23 @@ export function installerLaPile({ etat, sauver, attendus }) {
     zone.textContent = '';
     const vide = !etat.pile.copies.length;
 
-    for (const g of ici('pile', etat.pile)) {
+    /*
+     * ── LE BOUTON PRINCIPAL, ET IL S'APPELLE « CORRIGER » ──────────────────
+     *
+     * Il est sorti de la liste et posé au-dessus, en grand. Les autres gestes sont des
+     * ANGLES de correction ; celui-là est la correction. Les confondre dans une même
+     * grille, c'est obliger à choisir avant de savoir qu'on avait le choix.
+     */
+    const principal = GESTES.find((g) => g.id === 'corriger');
+    const bouton = $('pileCorriger');
+    bouton.disabled = vide;
+    $('pileCorrigerNote').textContent = vide
+      ? 'Dépose au moins une copie.'
+      : `${etat.pile.copies.length} copie(s) · rend : ${principal.rend}. `
+        + `Ne fera jamais : ${principal.jamais}.`;
+    bouton.onclick = () => lancerSurLaPile(principal);
+
+    for (const g of ici('pile', etat.pile).filter((g) => !g.principal)) {
       const b = el('button', 'geste');
       b.type = 'button';
       b.append(el('b', null, g.nom));

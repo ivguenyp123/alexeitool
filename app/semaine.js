@@ -22,7 +22,7 @@ import { JOURS, DOMAINES, REGIMES_DITS, NIVEAUX, HORAIRES,
          duJour, duree, minutes, dire, verdict, chevauchements } from '../lib/semaine.js';
 import { SEMAINE, CLASSE } from '../lib/exemple.js';
 import { ici } from '../lib/gestes.js';
-import { texteDeGeste } from '../lib/contexte.js';
+import { texteDeGeste, texteSemaine, texteClasse } from '../lib/contexte.js';
 
 /*
  * Les attendus officiels, s'ils ont été déposés — `npm run programme` les télécharge
@@ -38,6 +38,7 @@ import { table, caviarder, restes } from '../lib/eleves.js';
 import { lire, ecrire, durable } from './stockage.js';
 import { envoyer } from './envoi.js';
 import { installerLaPile } from './pile-ecran.js';
+import { ouvrirPorte } from './porte.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (t, c, x) => {
@@ -204,6 +205,82 @@ function rendreBilan() {
     for (const l of lignes) ul.append(el('li', null, l));
     b.append(ul);
   }
+
+  /*
+   * ── LA PORTE DE LA SEMAINE EST LE BILAN LUI-MÊME ──────────────────────────
+   *
+   * Le moment où l'on se demande quoi faire de sa semaine, c'est celui où l'on regarde ce
+   * qui ne tombe pas juste. Mettre l'entrée ailleurs — un menu, un bouton en haut —
+   * obligerait à traverser l'écran depuis l'endroit où la question se pose.
+   *
+   * L'invite change selon l'état : « rattraper » n'a aucun sens quand tout est couvert,
+   * et proposer un geste qui ne s'applique pas est ce qui fait douter du reste.
+   */
+  const ouvre = el('button', 'porteBilan');
+  ouvre.type = 'button';
+  ouvre.textContent = v.tient && !ch.length
+    ? 'Qu\'est-ce que je fais de cette semaine ?'
+    : 'Qu\'est-ce que je peux rattraper ?';
+  ouvre.onclick = () => ouvrirLaSemaine();
+  b.append(ouvre);
+}
+
+/* ── Les deux portes qui n'appartiennent à aucun jour ──────────────────────── */
+
+function ouvrirLaSemaine() {
+  const v = verdict(etat.semaine);
+  const tient = v.tient && !chevauchements(etat.semaine).length;
+  ouvrirPorte({
+    titre: 'Ma semaine',
+    quoi: `${etat.semaine.length} créneaux posés · `
+        + (tient ? 'les 24 heures sont couvertes' : 'les volumes ne tombent pas juste'),
+    // `tient` est calculé ICI et passé au filtre : `lib/gestes.js` ne déclare que des
+    // gestes, il n'additionne pas des créneaux.
+    ancrage: 'semaine', objet: { creneaux: etat.semaine, tient },
+    invite: 'par exemple : je suis absent jeudi, ou la piscine bouge le mardi',
+    lancer: (g, precision) => {
+      const classe = table(etat.classe || []);
+      const brut = texteSemaine(g, etat.semaine, { classe: etat.classe || [], precision });
+      envoyerAvecGarde(g, brut, classe, precision);
+    }
+  });
+}
+
+function ouvrirLaClasse() {
+  const n = (etat.classe || []).length;
+  ouvrirPorte({
+    titre: 'Ma classe',
+    quoi: `${n} élèves · CE2 ${(etat.classe || []).filter((e) => e.niveau === 'CE2').length}`
+        + ` · CM1 ${(etat.classe || []).filter((e) => e.niveau === 'CM1').length}`,
+    ancrage: 'classe', objet: { classe: etat.classe || [], releves: etat.releves || [] },
+    invite: 'ce que le mot doit annoncer : la sortie, la date, ce qu\'il faut apporter',
+    lancer: (g, precision) => {
+      const classe = table(etat.classe || []);
+      const brut = texteClasse(g, { classe: etat.classe || [], releves: etat.releves || [],
+                                    semaine: etat.semaine, precision });
+      envoyerAvecGarde(g, brut, classe, precision);
+    }
+  });
+}
+
+/**
+ * Caviarder, dire ce qu'on n'a pas su couvrir, puis envoyer.
+ *
+ * Le détecteur ne tourne QUE sur la précision libre : le reste du texte est généré ici et
+ * ne peut pas contenir le prénom d'un enfant. Lancé sur l'ensemble, il signalait des mots
+ * de mon propre cadre — et une alerte bruyante est une alerte qu'on cesse de lire.
+ */
+function envoyerAvecGarde(g, brut, classe, precision) {
+  const { texte, combien } = caviarder(brut, classe);
+  const suspects = restes(caviarder(precision, classe).texte, classe);
+  const avant = [
+    suspects.length && 'À vérifier — dans ta précision, des mots qui ressemblent à des '
+      + `prénoms hors liste de classe : ${suspects.slice(0, 6).map((x) => x.mot).join(', ')}.`,
+    combien && `${combien} prénom(s) remplacé(s) à l'envoi.`
+  ].filter(Boolean).join('\n');
+
+  return envoyer({ nom: g.nom, consigne: g.consigne, texte, classe,
+                   palier: g.palier || 'mid', avant });
 }
 
 /* ── Ce qu'on peut faire sur ce moment ────────────────────────────────────── */
@@ -462,6 +539,10 @@ $('supprimer').onclick = () => {
 
 $('voirTout').onclick = () => { toutVoir = !toutVoir; rendre(); };
 $('fermerMoment').onclick = () => $('moment').close();
+$('fermerPorte').onclick = () => $('porte').close();
+// La ligne « CE2-CM1 · 26 élèves » EST la porte de la classe : on touche l'objet, pas un
+// menu qui mènerait à lui.
+$('classe').onclick = () => ouvrirLaClasse();
 $('fermerPasEncore').onclick = () => $('pasEncore').close();
 $('modifierHoraire').onclick = () => { $('moment').close(); ouvrirEdition(enEdition); };
 
