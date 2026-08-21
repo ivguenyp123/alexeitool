@@ -373,3 +373,16 @@ button{font:inherit;cursor:pointer}
 .reglages{ margin-top:1rem; border-top:1px solid var(--trait); padding-top:.8rem; }
 .reglages summary{ cursor:pointer; color:var(--accent); font-size:.9rem; }
 .reglages > *:not(summary){ margin-top:.7rem; }
+
+/* La ligne de classe non saisie n'est pas une info, c'est une action qui attend. */
+.classe.aFaire{ color:var(--cm1); font-weight:600; }
+
+#champListe{
+  width:100%; font:inherit; padding:.6rem; border:1px solid var(--trait);
+  border-radius:10px; background:var(--carte); color:var(--encre); resize:vertical;
+}
+.reference textarea{
+  width:100%; font:inherit; padding:.6rem; border:1px solid var(--trait);
+  border-radius:10px; background:var(--carte); color:var(--encre); resize:vertical;
+}
+.reference i{ color:var(--encre3); font-style:normal; }

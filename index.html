@@ -139,6 +139,37 @@
 </dialog>
 
 <!--
+  MA CLASSE — le premier écran, et le seul qui soit obligatoire.
+
+  Sans liste de classe, aucun prénom ne peut être masqué avant l'envoi. Elle n'est donc
+  pas un réglage : c'est ce qui rend le reste utilisable.
+
+  On la COLLE, on ne la tape pas : elle existe déjà dans un tableur ou un export, et
+  retaper vingt-six lignes est la meilleure façon de ne jamais le faire.
+-->
+<dialog id="listeClasse" class="edition feuille">
+  <div class="dedansFeuille">
+    <h2>Ma classe</h2>
+    <p class="explique">
+      Colle ta liste, <b>une ligne par élève</b>. Ajoute <code>CE2</code> ou <code>CM1</code>
+      sur la ligne si tu veux que l'outil sache qui est dans quel niveau.
+      Elle reste <b>sur cette machine</b> et ne part jamais au fournisseur : ce qui sort
+      porte des numéros.
+    </p>
+    <textarea id="champListe" rows="10" spellcheck="false"
+      placeholder="Camille CE2&#10;Léa Bernard CE2&#10;Marie-Lou CM1&#10;DUPONT Arthur CM1"></textarea>
+    <p class="note" id="listeEtat"></p>
+    <p class="refus" id="listeEcartees" hidden></p>
+    <div class="boutons">
+      <button type="button" class="danger" id="listeVider">Tout effacer</button>
+      <span class="sp"></span>
+      <button type="button" id="listeAnnuler">Annuler</button>
+      <button type="button" class="plein" id="listeValider">Enregistrer</button>
+    </div>
+  </div>
+</dialog>
+
+<!--
   LA FEUILLE D'UN OBJET : la semaine, la classe, plus tard une période, un élève.
 
   On touche l'objet lui-même — le bilan des 24 heures en bas, la ligne « CE2-CM1 · 26
@@ -197,6 +228,19 @@
 
     <p class="refus" id="pileRefus" hidden></p>
 
+    <!--
+      SANS LISTE DE CLASSE, LES PRÉNOMS NE PEUVENT PAS ÊTRE MASQUÉS.
+
+      On ne bloque pas — un blocage à 22 h fait recopier les copies ailleurs, sans aucune
+      garde. Mais ça se voit, et le bouton pour y remédier est là.
+    -->
+    <p class="manque" id="pileSansClasse" hidden>
+      Ta liste de classe n'est pas encore saisie. Les copies ne pourront être rattachées
+      à personne, et surtout <b>les prénoms écrits dedans ne pourront pas être masqués</b>
+      avant l'envoi.
+      <button type="button" class="lien" id="pileSaisirClasse">Saisir ma classe</button>
+    </p>
+
     <div class="pileEtat">
       <b id="pileCompte">0 copie</b>
       <span class="sp"></span>
@@ -213,6 +257,22 @@
       s'appelant corriger. On dépose une dictée, on cherche le bouton, il n'existe pas :
       c'est le catalogue qu'on s'était juré de ne pas refaire, déguisé en finesse.
     -->
+    <!--
+      LE TEXTE ATTENDU, EN PLEIN MILIEU DU CHEMIN.
+
+      Il était absent, et c'est ce qui a produit la faute la plus visible : sans savoir ce
+      qui était attendu, le modèle a inventé un exercice et « les 12 erreurs du texte ».
+
+      Il reste facultatif — on corrige aussi sans référence, en signalant qu'on l'a pas.
+      Mais il n'est pas replié avec les réglages : une dictée ne se corrige pas sans son
+      texte, et le demander n'est pas de la bureaucratie.
+    -->
+    <label class="precision reference">
+      <span>Le texte de la dictée, l'énoncé, ou le corrigé <i>— recommandé</i></span>
+      <textarea id="pileReference" rows="3"
+        placeholder="Colle ici le texte tel qu'il fallait l'écrire. Sans lui, l'outil ne comptera aucune erreur : il n'aurait rien à quoi comparer."></textarea>
+    </label>
+
     <button type="button" class="corriger" id="pileCorriger">Corriger</button>
     <p class="note" id="pileCorrigerNote"></p>
 

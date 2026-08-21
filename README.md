@@ -152,6 +152,18 @@ laquelle des deux raisons s'applique. Se tromper d'élève est la faute la plus
 coûteuse que cet outil puisse commettre : une remarque au mauvais enfant, une
 observation dans le mauvais dossier.
 
+**Il faut d'abord saisir sa classe.** C'est le seul écran obligatoire, et il s'ouvre
+tout seul au premier lancement : on colle sa liste, une ligne par élève. Sans
+elle, aucun prénom ne peut être masqué avant l'envoi. L'outil ne charge **aucune
+classe d'exemple** — une liste de prénoms plausibles cesse de se distinguer d'une
+vraie dès qu'on dépose de vraies copies, et les copies se rattachent alors à des
+enfants qui n'existent pas.
+
+**Le texte attendu se donne.** La dictée, l'énoncé, le corrigé. Sans lui l'outil
+corrige quand même, mais il ne compte **aucune** erreur et il le dit : un
+décompte sans référence est un chiffre inventé, et il a l'aplomb d'un chiffre
+exact.
+
 **Qui n'a pas rendu est nommé.** Vingt-deux copies pour vingt-six élèves : les
 quatre absents ne se manifestent pas tout seuls, et on ne s'en aperçoit qu'en
 rendant la pile. Avec la règle qui va avec, répétée au modèle à chaque envoi :

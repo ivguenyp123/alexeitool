@@ -20,7 +20,7 @@
  */
 import { JOURS, DOMAINES, REGIMES_DITS, NIVEAUX, HORAIRES,
          duJour, duree, minutes, dire, verdict, chevauchements } from '../lib/semaine.js';
-import { SEMAINE, CLASSE } from '../lib/exemple.js';
+import { SEMAINE } from '../lib/exemple.js';
 import { ici } from '../lib/gestes.js';
 import { texteDeGeste, texteSemaine, texteClasse } from '../lib/contexte.js';
 
@@ -39,6 +39,7 @@ import { lire, ecrire, durable } from './stockage.js';
 import { envoyer } from './envoi.js';
 import { installerLaPile } from './pile-ecran.js';
 import { ouvrirPorte } from './porte.js';
+import { installerLaClasse } from './classe-ecran.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (t, c, x) => {
@@ -51,7 +52,16 @@ const el = (t, c, x) => {
 /* ── L'état ───────────────────────────────────────────────────────────────── */
 
 let etat = lire();
-if (!etat.semaine) etat = { ...etat, semaine: structuredClone(SEMAINE), classe: CLASSE };
+/*
+ * ── LA SEMAINE D'EXEMPLE OUI, LA CLASSE D'EXEMPLE NON ───────────────────────
+ *
+ * La grille horaire de départ est utile : on voit en trois secondes que ce n'est pas la
+ * sienne, et on la corrige. Une liste de vingt-six prénoms plausibles, non — elle ne se
+ * distingue plus d'une vraie dès qu'on dépose de vraies copies, et les copies se
+ * rattachent alors à des enfants qui n'existent pas.
+ */
+if (!etat.semaine) etat = { ...etat, semaine: structuredClone(SEMAINE), classe: [] };
+if (!Array.isArray(etat.classe)) etat.classe = [];
 
 /*
  * Le jour ouvert au départ est CELUI D'AUJOURD'HUI.
@@ -127,7 +137,12 @@ function unJour(jour, host) {
 /* ── Le rendu complet ─────────────────────────────────────────────────────── */
 
 function rendre() {
-  $('classe').textContent = `CE2-CM1 · ${(etat.classe || []).length} élèves`;
+  const n = (etat.classe || []).length;
+  // « 0 élèves » ne dit pas quoi faire. La ligne devient l'invitation à saisir la liste.
+  $('classe').textContent = n
+    ? `CE2-CM1 · ${n} élèves`
+    : 'CE2-CM1 · ta liste de classe n\'est pas saisie — touche ici';
+  $('classe').classList.toggle('aFaire', !n);
 
   /* Les onglets de jour. */
   const nav = $('jours');
@@ -542,11 +557,16 @@ $('fermerMoment').onclick = () => $('moment').close();
 $('fermerPorte').onclick = () => $('porte').close();
 // La ligne « CE2-CM1 · 26 élèves » EST la porte de la classe : on touche l'objet, pas un
 // menu qui mènerait à lui.
-$('classe').onclick = () => ouvrirLaClasse();
+$('classe').onclick = () => ((etat.classe || []).length ? ouvrirLaClasse() : classeEcran.ouvrir());
 $('fermerPasEncore').onclick = () => $('pasEncore').close();
 $('modifierHoraire').onclick = () => { $('moment').close(); ouvrirEdition(enEdition); };
 
+const classeEcran = installerLaClasse({ etat, sauver: () => ecrire(etat), apres: rendre });
 installerLaPile({ etat, sauver: () => ecrire(etat), attendus: () => ATTENDUS });
 
 rendre();
 verifierLaCle();
+
+// Au tout premier lancement, la liste de classe s'ouvre d'elle-même : sans elle, aucun
+// prénom ne peut être masqué, et ce n'est pas un réglage qu'on découvre plus tard.
+if (!(etat.classe || []).length) classeEcran.ouvrir();

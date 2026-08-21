@@ -188,6 +188,16 @@ export function installerLaPile({ etat, sauver, attendus }) {
     }
 
     $('pileVider').hidden = !etat.pile.copies.length;
+
+    /*
+     * SANS LISTE DE CLASSE, RIEN N'EST MASQUÉ.
+     *
+     * Le caviardage ne remplace que les prénoms qu'il connaît. Pas de liste, pas de
+     * remplacement : les copies partent avec les prénoms des enfants écrits dedans. On
+     * ne bloque pas — un blocage à 22 h fait recopier les copies ailleurs, sans aucune
+     * garde — mais ça se voit, et le bouton pour y remédier est juste là.
+     */
+    $('pileSansClasse').hidden = Boolean(t.eleves.length);
   }
 
   const garder = () => { sauver(); rendreCopies(); rendreGestes(); };
@@ -272,8 +282,11 @@ export function installerLaPile({ etat, sauver, attendus }) {
     bouton.disabled = vide;
     $('pileCorrigerNote').textContent = vide
       ? 'Dépose au moins une copie.'
-      : `${etat.pile.copies.length} copie(s) · rend : ${principal.rend}. `
-        + `Ne fera jamais : ${principal.jamais}.`;
+      : [`${etat.pile.copies.length} copie(s).`,
+         // Le manque de référence est dit AVANT l'envoi : c'est ce qui a fait inventer
+         // « les 12 erreurs du texte » sur une dictée dont le texte n'était pas donné.
+         etat.pile.reference ? '' : 'Sans le texte attendu, aucune erreur ne sera comptée.',
+         `Ne fera jamais : ${principal.jamais}.`].filter(Boolean).join(' ');
     bouton.onclick = () => lancerSurLaPile(principal);
 
     for (const g of ici('pile', etat.pile).filter((g) => !g.principal)) {
@@ -328,6 +341,7 @@ export function installerLaPile({ etat, sauver, attendus }) {
     etat.pile.niveau = $('pileNiveau').value;
     etat.pile.domaine = $('pileDomaine').value;
     etat.pile.consigneDonnee = $('pileConsigne').value.trim();
+    etat.pile.reference = $('pileReference').value.trim();
     etat.pile.attendu = $('pileAttendu').value === '@libre'
       ? $('pileAttenduLibre').value.trim()
       : ($('pileAttendu').value === '' ? '' : $('pileAttendu').value);
@@ -337,7 +351,7 @@ export function installerLaPile({ etat, sauver, attendus }) {
   $('pileNiveau').onchange = () => { relire(); remplirDomaines(); relire(); remplirAttendus(); };
   $('pileDomaine').onchange = () => { relire(); remplirAttendus(); };
   $('pileAttendu').onchange = () => { majLibre(); relire(); };
-  for (const id of ['pileExercice', 'pileConsigne', 'pileAttenduLibre']) {
+  for (const id of ['pileExercice', 'pileConsigne', 'pileAttenduLibre', 'pileReference']) {
     $(id).oninput = relire;
   }
 
@@ -345,6 +359,7 @@ export function installerLaPile({ etat, sauver, attendus }) {
     $('pileExercice').value = etat.pile.exercice || '';
     $('pileNiveau').value = etat.pile.niveau || '';
     $('pileConsigne').value = etat.pile.consigneDonnee || '';
+    $('pileReference').value = etat.pile.reference || '';
     remplirDomaines();
     remplirAttendus();
     if ($('pileAttendu').value === '@libre') $('pileAttenduLibre').value = etat.pile.attendu;
