@@ -69,6 +69,31 @@ perdre la seule chose qui le rend utile.
 
 ## Ce qui existe aujourd'hui
 
+### L'écran : sa semaine
+
+```bash
+npm start          # puis http://localhost:8080
+```
+
+On ouvre, **on voit son jour** — celui d'aujourd'hui, pas lundi. Pas d'accueil,
+pas de menu, pas de connexion. Le reste de l'outil viendra se greffer autour de
+cet écran, jamais devant.
+
+Ce qu'il montre et qu'aucun emploi du temps ne montre : pour chaque moment, si
+les deux groupes travaillent **ensemble**, **en alternance** (l'un en autonomie
+pendant que l'autre est avec l'enseignant) ou **séparément**. Et en bas, en
+permanence, le bilan des 24 heures réglementaires — avec le nom des écarts.
+
+Passer un créneau en « séparément » divise le temps de chaque groupe par deux :
+la carte le dit, et le bilan se met à signaler ce qui manque. C'est
+l'information qui fait renoncer à dédoubler quand on peut faire autrement, et
+elle n'existe nulle part ailleurs.
+
+Tout est **sur la machine**. Si le navigateur refuse d'enregistrer, l'écran le
+dit au lieu de laisser croire que le travail est gardé.
+
+### Les modules
+
 Trois modules purs, testés, sans aucune dépendance. Ce sont les fondations qui
 ne dépendent **pas** de ce que l'enseignant nous dira — le reste attend de lui
 avoir parlé.
@@ -111,7 +136,8 @@ Et `verdict()`, qui compare ce qui est posé à ce qui est dû et **nomme les
 ## Faire tourner
 
 ```bash
-npm test          # 42 vérifications, zéro dépendance
+npm test          # 47 vérifications, zéro dépendance
+npm start         # l'écran, sur http://localhost:8080
 ```
 
 Node 20.12 ou plus. Rien à installer.

@@ -7,8 +7,9 @@
  */
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { NIVEAUX, HORAIRES, REGIMES, total, duree, minutes, dire,
+import { NIVEAUX, HORAIRES, REGIMES, JOURS, total, duree, minutes, dire,
          volumes, manques, verdict, duJour, chevauchements } from '../lib/semaine.js';
+import { SEMAINE } from '../lib/exemple.js';
 
 const c = (o) => ({ jour: 'lundi', debut: '09:00', fin: '10:00', regime: 'commun', ...o });
 
@@ -85,6 +86,23 @@ describe('ce que chaque niveau reçoit vraiment', () => {
     const v = volumes([c({ domaine: 'francais', regime: 'decale', debut: '09:00', fin: '10:00' })]);
     assert.equal(v.CE2.francais, 60);
     assert.equal(v.CM1.francais, 60);
+  });
+
+  test('EN ALTERNANCE, les deux groupes peuvent faire des choses DIFFÉRENTES', () => {
+    /*
+     * Le défaut trouvé en montant une vraie semaine. « Questionner le monde » n'existe
+     * qu'au cycle 2, l'histoire-géographie qu'au cycle 3 : ces deux-là ne peuvent pas
+     * être communs. Mais ils se mènent SIMULTANÉMENT — l'un en autonomie pendant que
+     * l'autre est en dirigé — donc chacun reçoit la TOTALITÉ du créneau.
+     *
+     * Sans ça, il fallait tout dédoubler, et les deux programmes ne rentraient jamais
+     * dans 24 heures. C'était le modèle qui était faux, pas l'emploi du temps.
+     */
+    const v = volumes([c({ regime: 'decale', debut: '13:30', fin: '15:00',
+                           CE2: { domaine: 'questionner_le_monde' },
+                           CM1: { domaine: 'histoire_geo_emc' } })]);
+    assert.equal(v.CE2.questionner_le_monde, 90);
+    assert.equal(v.CM1.histoire_geo_emc, 90, 'la totalité, pas la moitié');
   });
 
   test('un créneau DÉDOUBLÉ est partagé — chacun n\'a que sa moitié', () => {
@@ -192,5 +210,38 @@ describe('le jour, et ce qui s\'y télescope', () => {
       c({ debut: '09:00', fin: '10:00' }),
       c({ debut: '10:00', fin: '11:00' })
     ]), []);
+  });
+});
+
+/* ══ LA SEMAINE D'EXEMPLE ═════════════════════════════════════════════════ */
+
+describe('la semaine livrée avec l\'outil', () => {
+  test('elle boucle EXACTEMENT sur les 24 heures des deux niveaux', () => {
+    /*
+     * Une grille d'exemple fausse ferait ouvrir l'outil sur un écran d'avertissements, et
+     * personne ne saurait si c'est la grille ou l'outil qui déraille. Elle doit donc être
+     * juste — et vérifiée, pas relue.
+     */
+    const v = verdict(SEMAINE);
+    assert.equal(v.tient, true, v.lignes ? v.lignes.join(' | ') : v.texte);
+  });
+
+  test('aucune séance ne se télescope', () => {
+    assert.deepEqual(chevauchements(SEMAINE), []);
+  });
+
+  test('les quatre jours font six heures chacun', () => {
+    for (const jour of JOURS) {
+      const min = duJour(SEMAINE, jour).reduce((s, c) => s + duree(c), 0);
+      assert.equal(min, 360, `${jour} fait ${dire(min)}`);
+    }
+  });
+
+  test('elle utilise l\'alternance sur des domaines différents', () => {
+    // C'est la seule façon de faire tenir les deux programmes. Si cette grille n'en
+    // contenait pas, elle ne démontrerait pas ce que l'outil sert à représenter.
+    const mixtes = SEMAINE.filter((c) => c.regime === 'decale' && c.CE2 && c.CM1
+      && c.CE2.domaine !== c.CM1.domaine);
+    assert.ok(mixtes.length >= 4, `${mixtes.length} créneau(x) en alternance mixte`);
   });
 });

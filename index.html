@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ma semaine — CE2-CM1</title>
+<!--
+  UN SEUL ÉCRAN, ET C'EST LA SEMAINE.
+
+  Pas d'accueil, pas de menu, pas de connexion. On ouvre, on voit son jour. Le reste de
+  l'outil viendra se greffer autour de ce qui est déjà là — jamais devant.
+
+  Pensé pour un téléphone d'abord : on consulte son emploi du temps debout, dans un couloir
+  ou devant la classe, pas assis à un bureau.
+-->
+<!-- Une horloge, en SVG inline : aucun fichier à charger, donc aucun 404 dans la console. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%231B6B8C' stroke-width='3'/%3E%3Cpath d='M16 8v8l6 3' fill='none' stroke='%238A4B12' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="app/app.css">
+</head>
+<body>
+
+<header class="tete">
+  <div class="dedans">
+    <div class="titre">
+      <h1>Ma semaine</h1>
+      <p class="classe" id="classe">CE2-CM1 · 26 élèves</p>
+    </div>
+    <button class="lien" id="voirTout" type="button">Voir les quatre jours</button>
+  </div>
+  <nav class="jours" id="jours" aria-label="Choisir un jour"></nav>
+</header>
+
+<main class="dedans" id="principal">
+  <p class="avert" id="avert" hidden></p>
+  <section id="jour" class="jour"></section>
+  <section id="semaine" class="semaineTout" hidden></section>
+  <section class="bilan" id="bilan"></section>
+</main>
+
+<!--
+  L'ÉDITION D'UN CRÉNEAU, EN PLEIN ÉCRAN SUR TÉLÉPHONE.
+
+  Une modale plutôt qu'une page : on modifie un horaire en regardant le reste de la
+  journée, et revenir en arrière ne doit rien coûter.
+-->
+<dialog id="edition" class="edition">
+  <form method="dialog" id="formEdition">
+    <h2 id="editionTitre">Modifier ce moment</h2>
+
+    <div class="rangee">
+      <label>De <input type="time" id="chDebut" required></label>
+      <label>à <input type="time" id="chFin" required></label>
+    </div>
+
+    <fieldset class="regimes">
+      <legend>Les deux groupes travaillent…</legend>
+      <label><input type="radio" name="regime" value="commun">
+        <b>ensemble</b><small>la même chose, en même temps</small></label>
+      <label><input type="radio" name="regime" value="decale">
+        <b>en alternance</b><small>l'un en autonomie pendant que l'autre est avec moi</small></label>
+      <label><input type="radio" name="regime" value="dedouble">
+        <b>séparément</b><small>deux séances l'une après l'autre — chacun n'a que la moitié du temps</small></label>
+    </fieldset>
+
+    <div class="rangee" id="choixDomaines"></div>
+
+    <p class="note" id="noteRegime"></p>
+
+    <div class="boutons">
+      <button type="button" class="danger" id="supprimer">Supprimer</button>
+      <span class="sp"></span>
+      <button type="button" id="annuler">Annuler</button>
+      <button type="submit" class="plein">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="module" src="app/semaine.js"></script>
+</body>
+</html>

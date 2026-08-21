@@ -1,0 +1,215 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Un outil de classe, pas un tableau de bord.
+
+   Le téléphone d'abord : on regarde son emploi du temps debout, pas assis. Tout ce
+   qui est cliquable fait au moins 44 pixels de haut, parce qu'on le touche avec un
+   pouce en tenant une pile de copies de l'autre main.
+
+   Les deux niveaux ont chacun leur couleur, et c'est la seule chose que la couleur
+   dit. Le régime — ensemble, en alternance, séparément — se lit au TEXTE et à la
+   forme du bloc, jamais à la teinte : un enseignant sur trois voit mal le rouge et
+   le vert, et un emploi du temps illisible est un emploi du temps inutile.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+:root{
+  --papier:#FBFAF7;
+  --carte:#FFFFFF;
+  --creux:#F2F0EA;
+  --encre:#22201C;
+  --encre2:#5C5750;
+  --encre3:#8B857C;
+  --trait:#E2DED5;
+  --trait2:#C9C3B7;
+
+  /* CE2 et CM1 : deux familles distinctes, lisibles sur blanc et l'une à côté de l'autre. */
+  --ce2:#1B6B8C;
+  --ce2-voile:#E6F1F6;
+  --cm1:#8A4B12;
+  --cm1-voile:#F8EEE3;
+
+  --accent:#1B6B8C;
+  --ok:#1F6B4F;
+  --ok-voile:#E7F2ED;
+  --alerte:#9A3412;
+  --alerte-voile:#FBEDE7;
+
+  --ombre:0 1px 2px rgba(34,32,28,.06), 0 8px 20px -14px rgba(34,32,28,.3);
+  --r:14px;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --papier:#17161A;
+    --carte:#211F25;
+    --creux:#2A2831;
+    --encre:#F0EDE8;
+    --encre2:#B4AEA6;
+    --encre3:#847E77;
+    --trait:#37343D;
+    --trait2:#4C4854;
+    --ce2:#6FC3E4;
+    --ce2-voile:#16303B;
+    --cm1:#E8A867;
+    --cm1-voile:#3A2A16;
+    --accent:#6FC3E4;
+    --ok:#5FC79C;
+    --ok-voile:#16302A;
+    --alerte:#F0916A;
+    --alerte-voile:#3A211A;
+    --ombre:0 1px 2px rgba(0,0,0,.4), 0 10px 26px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --papier:#17161A; --carte:#211F25; --creux:#2A2831;
+  --encre:#F0EDE8; --encre2:#B4AEA6; --encre3:#847E77;
+  --trait:#37343D; --trait2:#4C4854;
+  --ce2:#6FC3E4; --ce2-voile:#16303B; --cm1:#E8A867; --cm1-voile:#3A2A16;
+  --accent:#6FC3E4; --ok:#5FC79C; --ok-voile:#16302A;
+  --alerte:#F0916A; --alerte-voile:#3A211A;
+  --ombre:0 1px 2px rgba(0,0,0,.4), 0 10px 26px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--papier);color:var(--encre);
+  font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  padding-bottom:48px;
+}
+h1,h2,h3{margin:0;line-height:1.2}
+p{margin:0}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+.dedans{max-width:900px;margin:0 auto;padding:0 16px}
+
+/* ── L'en-tête ─────────────────────────────────────────────────────────── */
+
+.tete{background:var(--carte);border-bottom:1px solid var(--trait);
+      position:sticky;top:0;z-index:10}
+.tete .dedans{display:flex;align-items:center;gap:12px;padding-top:14px;padding-bottom:10px}
+.titre h1{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.classe{font-size:13px;color:var(--encre3)}
+.lien{background:none;border:none;color:var(--accent);font-size:14px;font-weight:600;
+      margin-left:auto;padding:10px 4px;text-align:right}
+.lien:hover{text-decoration:underline}
+
+/* Les jours : des onglets assez gros pour un pouce. */
+.jours{display:flex;gap:6px;overflow-x:auto;padding:0 16px 10px;max-width:900px;
+       margin:0 auto;scrollbar-width:none}
+.jours::-webkit-scrollbar{display:none}
+.jours button{
+  flex:1 0 auto;min-height:44px;padding:9px 16px;border-radius:999px;
+  border:1px solid var(--trait2);background:transparent;color:var(--encre2);
+  font-size:15px;font-weight:600;white-space:nowrap;
+}
+.jours button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:var(--papier)}
+.jours button .auj{display:block;font-size:10px;font-weight:700;letter-spacing:.08em;
+                   text-transform:uppercase;opacity:.75}
+
+/* ── Un moment de la journée ───────────────────────────────────────────── */
+
+.jour{display:grid;gap:10px;padding-top:18px}
+.vide{padding:28px 18px;text-align:center;color:var(--encre3);border:1.5px dashed var(--trait2);
+      border-radius:var(--r);font-size:15px;line-height:1.6}
+
+.moment{
+  display:grid;grid-template-columns:78px 1fr;gap:14px;align-items:start;
+  width:100%;text-align:left;padding:14px;border-radius:var(--r);
+  border:1px solid var(--trait);background:var(--carte);box-shadow:var(--ombre);
+}
+.moment:hover{border-color:var(--trait2)}
+.moment .quand{display:grid;gap:1px}
+.moment .quand b{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.moment .quand span{font-size:12px;color:var(--encre3);font-variant-numeric:tabular-nums}
+
+.quoi{display:grid;gap:8px;min-width:0}
+
+/* Le régime, dit en toutes lettres. Pas d'icône seule : on ne devine pas un
+   fonctionnement de classe à partir d'un pictogramme. */
+.regime{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+        color:var(--encre3)}
+
+/* Ensemble : un seul bloc, pas deux. La forme dit ce que le texte dit. */
+.ensemble{font-size:17px;font-weight:600}
+
+/* En alternance ou séparément : deux blocs, un par niveau. */
+.deux{display:grid;gap:6px}
+@media(min-width:520px){.deux{grid-template-columns:1fr 1fr;gap:8px}}
+.part{display:grid;gap:1px;padding:8px 10px;border-radius:9px;border-left:3px solid}
+.part .qui{font-size:11px;font-weight:800;letter-spacing:.05em}
+.part .qd{font-size:15px;font-weight:600;line-height:1.3}
+.part.ce2{border-left-color:var(--ce2);background:var(--ce2-voile)}
+.part.ce2 .qui{color:var(--ce2)}
+.part.cm1{border-left-color:var(--cm1);background:var(--cm1-voile)}
+.part.cm1 .qui{color:var(--cm1)}
+
+/* Séparément : le trait pointillé dit que le temps est coupé en deux. */
+.moment.dedouble .part{border-left-style:dashed}
+.moitie{font-size:11.5px;color:var(--encre3);font-style:italic}
+
+/* ── Les quatre jours d'un coup ────────────────────────────────────────── */
+
+.semaineTout{padding-top:18px;display:grid;gap:20px}
+.semaineTout h2{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;
+                color:var(--encre3);margin-bottom:8px}
+.semaineTout .jour{padding-top:0}
+
+/* ── Le bilan des 24 heures ────────────────────────────────────────────── */
+
+.bilan{margin-top:26px;border-radius:var(--r);border:1px solid var(--trait);
+       background:var(--carte);overflow:hidden}
+.bilan .haut{padding:14px 16px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.bilan .haut b{font-size:15px;font-weight:700}
+.bilan .haut span{font-size:13.5px;color:var(--encre2)}
+.bilan.tient .haut{background:var(--ok-voile)}
+.bilan.tient .haut b{color:var(--ok)}
+.bilan.casse .haut{background:var(--alerte-voile)}
+.bilan.casse .haut b{color:var(--alerte)}
+.bilan ul{margin:0;padding:12px 16px 14px 32px;display:grid;gap:5px;
+          border-top:1px solid var(--trait)}
+.bilan li{font-size:13.5px;color:var(--encre2);font-variant-numeric:tabular-nums}
+
+.avert{margin:16px 0 0;padding:11px 14px;border-radius:10px;font-size:13.5px;line-height:1.5;
+       background:var(--alerte-voile);color:var(--alerte);border:1px solid currentColor}
+
+/* ── La modale d'édition ───────────────────────────────────────────────── */
+
+.edition{
+  border:none;border-radius:16px;padding:0;background:var(--carte);color:var(--encre);
+  width:min(560px,100%);box-shadow:0 20px 60px -20px rgba(0,0,0,.5);
+}
+.edition::backdrop{background:rgba(20,18,16,.55)}
+.edition form{padding:20px 18px;display:grid;gap:16px}
+.edition h2{font-size:19px;font-weight:700}
+
+.rangee{display:flex;gap:12px;flex-wrap:wrap}
+.rangee label{display:grid;gap:5px;font-size:13px;color:var(--encre2);font-weight:600;flex:1 1 150px}
+.rangee input,.rangee select{
+  font:inherit;font-size:16px;min-height:44px;padding:9px 11px;border-radius:9px;
+  border:1px solid var(--trait2);background:var(--papier);color:var(--encre);width:100%;
+}
+
+.regimes{border:1px solid var(--trait);border-radius:12px;padding:12px;margin:0;display:grid;gap:2px}
+.regimes legend{font-size:13px;font-weight:700;color:var(--encre2);padding:0 6px}
+.regimes label{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;
+               align-items:baseline;padding:9px 8px;border-radius:9px;min-height:44px}
+.regimes label:hover{background:var(--creux)}
+.regimes input{width:20px;height:20px;grid-row:span 2;align-self:center}
+.regimes b{font-size:15.5px}
+.regimes small{font-size:12.5px;color:var(--encre3);grid-column:2;line-height:1.45}
+
+.note{font-size:13px;color:var(--encre2);line-height:1.55;padding:10px 12px;
+      background:var(--creux);border-radius:10px}
+
+.boutons{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.boutons .sp{flex:1}
+.boutons button{min-height:44px;padding:10px 18px;border-radius:10px;font-weight:600;
+                border:1px solid var(--trait2);background:transparent;color:var(--encre)}
+.boutons .plein{background:var(--accent);border-color:var(--accent);color:var(--papier)}
+.boutons .danger{border-color:var(--alerte);color:var(--alerte)}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:1ms !important;transition-duration:1ms !important}
+}
