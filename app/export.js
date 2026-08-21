@@ -56,13 +56,41 @@ function nomDeFichier(ext) {
  * qui sort une page blanche parce qu'un analyseur n'a pas reconnu son entrée est un outil
  * qu'on n'ouvre plus.
  */
-const lesBlocs = () => documentDeCorrection(
+const leDocument = () => documentDeCorrection(
   // Le brut d'abord : il porte les numéros, et c'est eux qui rattachent une correction à
   // une copie. L'écran est le repli quand on n'a pas le brut.
   courant.brut || $('sortieTexte').textContent || '',
   courant.pile, courant.classe,
   { ...courant, quand: leJour() }
-).blocs;
+);
+
+const lesBlocs = () => leDocument().blocs;
+
+/**
+ * ── L'ÉCRAN DOIT DIRE SI LE ROUGE A PU ÊTRE POSÉ ────────────────────────────
+ *
+ * Constaté sur la première vraie dictée : le modèle a répondu autrement que demandé, les
+ * corrections n'ont pas pu être reposées sur les copies, et l'export est sorti sans une
+ * seule marque. Rien à l'écran ne le disait. On cherche le rouge dans le document, on ne
+ * le trouve pas, et on ne sait pas si c'est l'outil, le modèle ou soi.
+ *
+ * Le silence est le pire des trois états. Alors on compte, et on le dit.
+ */
+export function diagnostic() {
+  if (!courant.pile?.copies?.length) return '';
+  const d = leDocument();
+  if (!d.surLaCopie) {
+    return 'Les corrections n\'ont pas pu être posées sur les copies : la réponse n\'a pas '
+      + 'la forme attendue. Le document reprendra le texte tel quel. Relance — ou dépose '
+      + 'le texte attendu, qui aide beaucoup.';
+  }
+  const bouts = [`${d.copies} copie(s) corrigée(s) en rouge dans le document.`];
+  if (d.introuvables) {
+    bouts.push(`${d.introuvables} correction(s) n'ont pas été posées : le mot signalé ne `
+      + 'se trouve pas dans la copie. Elles sont listées dans le document.');
+  }
+  return bouts.join(' ');
+}
 
 /**
  * Proposer un fichier au téléchargement.

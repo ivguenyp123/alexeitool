@@ -16,7 +16,7 @@
  * sait ce qu'il envoie ; ce qui en sort est restitué ici, une fois.
  */
 import { restituer } from '../lib/eleves.js';
-import { noterCeQuOnExporte } from './export.js';
+import { noterCeQuOnExporte, diagnostic } from './export.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -69,7 +69,9 @@ export async function envoyer({ nom, consigne, texte, classe, palier = 'mid', av
 
     const m = [`${j.fournisseur} · ${j.modele}`];
     if (j.jetons) m.push(`${j.jetons.entree}+${j.jetons.sortie} jetons`);
-    $('sortieMeta').textContent = [avant, m.join(' · ')].filter(Boolean).join('\n');
+    // Ce que l'export saura faire de cette réponse-là — dit ici, avant qu'on clique.
+    $('sortieMeta').textContent = [avant, diagnostic(), m.join(' · ')]
+      .filter(Boolean).join('\n');
     return j;
   } catch {
     $('sortieEtat').className = 'etat rate';

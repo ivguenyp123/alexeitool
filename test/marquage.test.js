@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { lireLaCorrection, apparier } from '../lib/correction.js';
+import { lireLaCorrection, lireUneErreur, affiner, apparier } from '../lib/correction.js';
 import { marquer, parNature } from '../lib/marquage.js';
 import { documentDeCorrection } from '../lib/document.js';
 import { nu } from '../lib/miseenforme.js';
@@ -56,6 +56,79 @@ describe('lire ce que le modèle a rendu', () => {
     const lu = lireLaCorrection('Une réponse en prose, sans aucun bloc.');
     assert.equal(lu.reconnu, false);
     assert.equal(lu.prose, 'Une réponse en prose, sans aucun bloc.');
+  });
+});
+
+describe('la forme que le modèle rend vraiment', () => {
+  /*
+   * Relevé sur la première vraie dictée. La consigne demandait « dor -> dort | accord » ;
+   * voilà ce qui est revenu. Exiger la forme était une erreur : on ne contrôle pas ce
+   * qu'un modèle rend, on contrôle ce qu'on sait lire.
+   */
+  const VRAIE = `Le texte attendu manque. Je ne peux donc pas corriger la dictée.
+
+Je relève uniquement les fautes certaines dans la copie de l'élève 08 :
+
+— « Se matin » → erreur sur le déterminant (probablement « Ce »)
+— « parte » → accord sujet/verbe (« Léo et sa petite sœur » → « partent »)
+— « leurs cartable » → accord nom/adjectif (« leurs » → « leur » car un seul cartable)
+— « une trousse bleu » → accord de l'adjectif de couleur (« bleue »)`;
+
+  test('le mot correct est trouvé même derrière une seconde flèche', () => {
+    const e = lireUneErreur('« parte » → accord sujet/verbe (« Léo et sa sœur » → « partent »)');
+    assert.equal(e.ecrit, 'parte');
+    assert.equal(e.attendu, 'partent');
+    assert.equal(e.nature, 'accord sujet/verbe');
+  });
+
+  test('ou entre parenthèses, à la fin', () => {
+    const e = lireUneErreur('« une trousse bleu » → accord de l\'adjectif (« bleue »)');
+    assert.equal(e.attendu, 'bleue');
+  });
+
+  test('le groupe fautif est RESSERRÉ sur le mot qui change', () => {
+    // « Se matin » → « Ce » : remplacer les deux mots écraserait « matin ». Poser le
+    // rouge sur le mauvais mot est pire que ne pas le poser.
+    assert.deepEqual(affiner('Se matin', 'Ce'), { ecrit: 'Se', attendu: 'Ce' });
+    assert.deepEqual(affiner('leurs cartable', 'leur'), { ecrit: 'leurs', attendu: 'leur' });
+  });
+
+  test('trop loin : on garde le groupe entier plutôt que de viser au hasard', () => {
+    const a = affiner('le chat noir', 'chien');
+    assert.equal(a.ecrit, 'le chat noir');
+  });
+
+  test('une phrase ordinaire n\'est pas prise pour une correction', () => {
+    assert.equal(lireUneErreur('Je relève uniquement les fautes certaines.'), null);
+    assert.equal(lireUneErreur('a -> ' + 'x'.repeat(90)), null);
+  });
+
+  test('sans AUCUN bloc, les fautes sont quand même récupérées', () => {
+    const lu = lireLaCorrection(VRAIE);
+    assert.equal(lu.reconnu, true);
+    assert.equal(lu.sansBloc, true);
+    // Un seul numéro d'élève cité dans la réponse : c'est à lui qu'elles s'adressent.
+    assert.equal(lu.copies[0].qui, 'Élève 08');
+    assert.equal(lu.copies[0].erreurs.length, 4);
+    assert.match(lu.prose, /Le texte attendu manque/);
+  });
+
+  test('deux élèves cités sans bloc : on ne tranche pas', () => {
+    const lu = lireLaCorrection('Copies des élèves 03 et 07 :\n« dor » → « dort »');
+    assert.equal(lu.copies[0].qui, '');
+  });
+
+  test('sans destinataire ET plusieurs copies, rien n\'est posé', () => {
+    const r = apparier([{ qui: '', erreurs: [{ ecrit: 'a', attendu: 'b' }], mot: '' }],
+                       [{ pseudo: 'Élève 01' }, { pseudo: 'Élève 02' }]);
+    assert.equal(r.appariees.length, 0);
+    assert.equal(r.orphelins.length, 1);
+  });
+
+  test('sans destinataire et UNE seule copie, c\'est la sienne', () => {
+    const r = apparier([{ qui: '', erreurs: [{ ecrit: 'a', attendu: 'b' }], mot: '' }],
+                       [{ pseudo: 'Élève 08' }]);
+    assert.equal(r.appariees.length, 1);
   });
 });
 
