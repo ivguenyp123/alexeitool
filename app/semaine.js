@@ -22,6 +22,8 @@ import { JOURS, DOMAINES, REGIMES_DITS, NIVEAUX, HORAIRES,
          duJour, duree, minutes, dire, verdict, chevauchements } from '../lib/semaine.js';
 import { SEMAINE, CLASSE } from '../lib/exemple.js';
 import { ici } from '../lib/gestes.js';
+import { texteDeGeste } from '../lib/contexte.js';
+import { table, caviarder, restituer, restes } from '../lib/eleves.js';
 import { lire, ecrire, durable } from './stockage.js';
 
 const $ = (id) => document.getElementById(id);
@@ -231,7 +233,7 @@ function ouvrirMoment(index) {
      * distingue un outil d'aide d'un outil qui décide.
      */
     b.append(el('small', 'jamais', `ne fera jamais : ${g.jamais}`));
-    b.onclick = () => direPasEncore(g);
+    b.onclick = () => lancer(g, c);
     zone.append(b);
   }
 
@@ -239,18 +241,86 @@ function ouvrirMoment(index) {
 }
 
 /**
- * Rien n'est branché sur un modèle pour l'instant, et on le DIT.
+ * ── LE TRAJET COMPLET, ET LE CAVIARDAGE EST DESSUS ──────────────────────────
  *
- * Un bouton qui ne fait rien est pire que pas de bouton : il fait douter de tout le reste.
- * Tant que le fournisseur n'est pas choisi et que la question des productions d'élèves
- * n'est pas tranchée, chaque geste annonce ce qu'il fera — et qu'il ne le fait pas encore.
+ * situation → prénoms remplacés → le fournisseur → prénoms remis → l'écran.
+ *
+ * Le remplacement se fait ICI, dans le navigateur, parce que c'est le seul endroit qui
+ * connaît la classe — et elle n'a aucune raison d'en sortir. Le serveur, lui, refuse tout
+ * envoi qui n'est pas marqué caviardé : il ne peut pas le vérifier, mais il rend l'oubli
+ * impossible à commettre en silence.
  */
-function direPasEncore(g) {
-  $('pasEncoreNom').textContent = g.nom;
-  $('pasEncoreRend').textContent = g.rend;
+async function lancer(g, c) {
   $('moment').close();
-  $('pasEncore').showModal();
+  $('sortieNom').textContent = g.nom;
+  $('sortieTexte').textContent = '';
+  $('sortieEtat').textContent = 'Envoi…';
+  $('sortieEtat').className = 'etat';
+  $('sortieMeta').textContent = '';
+  $('sortie').showModal();
+
+  const classe = table(etat.classe || []);
+  const precision = $('precision')?.value || '';
+  const brut = texteDeGeste(g, c, { classe: etat.classe || [], precision });
+  const { texte, combien } = caviarder(brut, classe);
+
+  /*
+   * ── ON NE CHERCHE LES PRÉNOMS OUBLIÉS QUE DANS CE QU'UN HUMAIN A ÉCRIT ─────
+   *
+   * Mesuré : lancé sur le texte entier, le détecteur signalait « Mathématiques »,
+   * « Chacun », « Travaille » — des mots de MON propre cadre, capitalisés en début de
+   * phrase. Du bruit dans une alerte, c'est ce qui fait qu'on cesse de la lire, et alors
+   * elle ne sert plus le jour où elle a raison.
+   *
+   * Le cadre est généré ici : il ne peut pas contenir le prénom d'un enfant. Seule la
+   * précision libre en contient, puisque c'est la seule partie qu'une personne a tapée.
+   */
+  const suspects = restes(caviarder(precision, classe).texte, classe);
+  if (suspects.length) {
+    $('sortieMeta').textContent = 'À vérifier — dans ta précision, des mots qui ressemblent '
+      + 'à des prénoms et que la liste de classe ne connaît pas : '
+      + `${suspects.slice(0, 6).map((x) => x.mot).join(', ')}.`;
+  }
+
+  try {
+    const r = await fetch('/api/modele', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ texte, consigne: g.consigne, caviarde: true, palier: g.palier || 'mid' })
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) {
+      $('sortieEtat').className = 'etat rate';
+      $('sortieEtat').textContent = j.dit || 'L\'appel a échoué.';
+      return;
+    }
+    $('sortieEtat').textContent = '';
+    // On remet les prénoms pour l'affichage : l'enseignant lit des prénoms, le modèle
+    // n'a jamais vu que des numéros.
+    $('sortieTexte').textContent = restituer(j.texte, classe);
+    const m = [`${j.fournisseur} · ${j.modele}`];
+    if (j.jetons) m.push(`${j.jetons.entree}+${j.jetons.sortie} jetons`);
+    if (combien) m.push(`${combien} prénom(s) remplacé(s) à l'envoi`);
+    $('sortieMeta').textContent = [$('sortieMeta').textContent, m.join(' · ')]
+      .filter(Boolean).join('\n');
+  } catch {
+    $('sortieEtat').className = 'etat rate';
+    $('sortieEtat').textContent = 'Le serveur local ne répond pas. Est-ce que `npm start` tourne ?';
+  }
 }
+
+$('sortieFermer').onclick = () => $('sortie').close();
+$('sortieCopier').onclick = async () => {
+  try {
+    await navigator.clipboard.writeText($('sortieTexte').textContent);
+    $('sortieCopier').textContent = 'Copié';
+    setTimeout(() => { $('sortieCopier').textContent = 'Copier'; }, 1500);
+  } catch {
+    // Le presse-papiers est refusé hors contexte sécurisé. On le dit plutôt que de
+    // laisser croire que la copie a eu lieu.
+    $('sortieCopier').textContent = 'Copie refusée par le navigateur';
+  }
+};
 
 /* ── L'édition d'un moment ────────────────────────────────────────────────── */
 

@@ -54,6 +54,10 @@
   <div class="dedansFeuille">
     <h2 id="momentTitre">Ce moment</h2>
     <p class="quoiMoment" id="momentQuoi"></p>
+    <label class="precision">
+      <span>Une précision, si tu veux (facultatif)</span>
+      <input id="precision" type="text" placeholder="par exemple : ils bloquent sur l'accord du participe passé">
+    </label>
     <div class="gestes" id="gestes"></div>
     <div class="boutons">
       <button type="button" id="modifierHoraire">Modifier l'horaire ou les groupes</button>
@@ -64,6 +68,24 @@
 </dialog>
 
 <!-- Un bouton qui ne fait rien est pire que pas de bouton : on dit ce qui manque. -->
+<!--
+  LA RÉPONSE. Le texte brut, dans une police à chasse fixe : ce qui sort est une fiche de
+  préparation qu'on recopie, pas un article. L'alignement compte plus que l'élégance.
+-->
+<dialog id="sortie" class="edition feuille">
+  <div class="sortieForm">
+    <h2 id="sortieNom">…</h2>
+    <p class="etat" id="sortieEtat"></p>
+    <pre id="sortieTexte"></pre>
+    <p class="meta" id="sortieMeta"></p>
+    <div class="boutons">
+      <button type="button" id="sortieCopier">Copier</button>
+      <span class="sp"></span>
+      <button type="button" class="plein" id="sortieFermer">Fermer</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="pasEncore" class="edition">
   <div class="dedansFeuille">
     <h2 id="pasEncoreNom"></h2>
