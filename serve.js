@@ -137,5 +137,27 @@ createServer(async (req, res) => {
   console.log(`Ouvre http://localhost:${PORT}`);
   console.log(CLE
     ? 'Clé DeepSeek chargée depuis l\'environnement.'
-    : 'Aucune clé DeepSeek : mets-la dans .env sous DEEPSEEK_API_KEY.');
+    : [
+        'Aucune clé DeepSeek dans l\'environnement.',
+        '',
+        'ATTENTION — un secret de dépôt GitHub NE SUFFIT PAS ici. Les deux pages',
+        'de GitHub s\'appellent « Repository secrets », et elles ne font pas la',
+        'même chose :',
+        '',
+        '  settings/secrets/actions      lisible SEULEMENT pendant un run GitHub',
+        '                                Actions. Write-only : personne ne peut le',
+        '                                relire, pas même toi. Ce processus-ci ne le',
+        '                                verra jamais.',
+        '',
+        '  settings/secrets/codespaces   présent comme variable d\'environnement',
+        '                                dans un Codespace ouvert depuis le dépôt.',
+        '                                Là, ça marche tout seul.',
+        '',
+        'Sur une machine ordinaire :  cp .env.exemple .env  puis mets la clé dedans.',
+        'Les deux noms sont acceptés : DEEPSEEK_API_KEY ou ALEXEI.',
+        '',
+        'Pour vérifier que ta clé est bonne sans rien déplacer : sur GitHub,',
+        'Actions → « vérifications » → Run workflow. Là le secret Actions est',
+        'lisible, et l\'essai fait un vrai appel.'
+      ].join('\n'));
 });
