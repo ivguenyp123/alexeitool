@@ -183,29 +183,35 @@ Node 20.12 ou plus. Rien à installer.
 
 ```bash
 cp .env.exemple .env
-# ouvre .env, remplace la valeur par ta clé
+$EDITOR .env          # DEEPSEEK_API_KEY=…
 npm start
 ```
 
 Au démarrage, le serveur dit s'il l'a trouvée.
 
-**Où elle vit, et pourquoi.** L'outil est une page statique : tout ce que la page
-connaît est lisible dans les outils de développement du navigateur. Il n'y a pas
-de « caché » côté client, seulement du « pas encore regardé ». Une clé posée là
-serait une clé publiée.
+**C'est exactement le mécanisme de la plateforme technique** : même nom de
+variable, même `.env` ignoré, même `.env.exemple` versionné et vide. Le client
+`runtime/deepseek.js` est d'ailleurs le même fichier — porté, pas réécrit. Ses
+codes de refus nommés un par un, le `reasoning_content` qu'il ne faut pas lire,
+la réponse vide qui doit lever : rien de tout ça ne se redécouvre en une soirée.
 
-Elle est donc lue par `serve.js`, **dans le processus**, et ne traverse jamais
-une réponse HTTP. La page appelle `/api/modele` sans jamais la voir —
-`/api/etat` répond `{ pret: true }`, rien de plus.
+**Où elle ne va pas.** L'outil est une page statique : tout ce que la page
+connaît est lisible dans les outils de développement. La clé est lue par
+`serve.js`, dans le processus, et ne traverse jamais une réponse. La page appelle
+`/api/modele` sans jamais la voir.
 
-`.env` est ignoré par git (`.env`, `.env.*`, `*.key`, `*.pem`). Seul
-`.env.exemple` est versionné : il ne porte que le **nom** de la variable.
+**Un secret GitHub ne convient pas ici.** Il n'existe qu'à l'intérieur d'un run
+GitHub Actions — il ne peut pas atteindre le portable de l'enseignant. Il servira
+le jour où on voudra faire tourner des vérifications au dépôt, pas avant.
 
-**Rien ne part sans caviardage.** La route refuse tout envoi que la page n'a pas
-marqué comme caviardé. C'est une déclaration, pas une preuve — le serveur ne
-connaît pas la classe, elle vit dans le navigateur. Mais le jour où un nouvel
-écran oublie l'étape, l'envoi est refusé au lieu de partir : l'oubli devient une
-erreur visible plutôt qu'une fuite silencieuse.
+**Rien ne part sans caviardage.** `lib/garde.js` refuse tout envoi que la page
+n'a pas marqué caviardé. C'est une déclaration, pas une preuve — le serveur ne
+connaît pas la classe. Mais le jour où un nouvel écran oublie l'étape, l'envoi
+est refusé au lieu de partir.
+
+**Et une clé ne peut pas entrer au dépôt.** `test/secrets.test.js`, porté lui
+aussi, regarde le contenu de ce qui est *indexé* — pas le `.gitignore`, qui n'est
+qu'une intention et se contourne d'un `git add -f`.
 
 ---
 

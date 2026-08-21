@@ -15,8 +15,11 @@
  */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
-import { FOURNISSEUR, peutEnvoyer, requete, reponse } from './lib/appel.js';
+import { createMoteur } from './runtime/moteur.js';
+import { AppelError } from './runtime/erreur.js';
+import { peutEnvoyer } from './lib/garde.js';
 
 const RACINE = import.meta.dirname;
 const PORT = Number(process.env.PORT) || 8080;
@@ -25,7 +28,24 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
                 '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
                 '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon' };
 
-const CLE = process.env[FOURNISSEUR.variable] || '';
+const CLE = process.env.DEEPSEEK_API_KEY || '';
+const MODELS = lireModeles();
+
+function lireModeles() {
+  // Un analyseur minimal : ce fichier n'a que des listes de paires. Tirer une dépendance
+  // YAML pour ça serait payer cher un format qu'on écrit soi-même.
+  try {
+    const brut = readFileSync(join(RACINE, 'registries/models.yaml'), 'utf8');
+    const out = [];
+    for (const ligne of brut.split('\n')) {
+      const debut = /^\s*-\s*tier:\s*(\S+)/.exec(ligne);
+      if (debut) { out.push({ tier: debut[1] }); continue; }
+      const paire = /^\s+(\w+):\s*(.+?)\s*$/.exec(ligne);
+      if (paire && out.length) out[out.length - 1][paire[1]] = paire[2];
+    }
+    return out;
+  } catch { return []; }
+}
 
 const json = (res, code, o) => {
   res.writeHead(code, { 'content-type': 'application/json; charset=utf-8' });
@@ -58,23 +78,25 @@ async function appelerLeModele(req, res) {
   if (!verdict.ok) return json(res, verdict.code, { dit: verdict.dit });
 
   try {
-    const r = await fetch(FOURNISSEUR.url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json',
-                 authorization: `Bearer ${CLE}` },
-      body: JSON.stringify(requete(corps))
+    const moteur = createMoteur({ models: MODELS });
+    const r = await moteur.generer({
+      prompt: corps.texte,
+      tier: corps.palier || 'mid',
+      // Bas : on demande des reformulations et des classements, pas de l'invention. Un
+      // modèle bavard produit ici des séances plausibles et fausses.
+      temperature: 0.3
     });
-    if (!r.ok) {
-      /*
-       * On rend le CODE et rien du corps d'erreur du fournisseur : un message d'erreur
-       * distant peut réémettre ce qu'on lui a envoyé, et on ne veut pas qu'un fragment de
-       * copie d'élève revienne par ce chemin-là dans une console.
-       */
-      return json(res, 502, { dit: `Le fournisseur a refusé (code ${r.status}). `
-        + (r.status === 401 ? 'La clé est invalide ou expirée.' : 'Réessaie dans un moment.') });
-    }
-    return json(res, 200, reponse(await r.json()));
+    /*
+     * Le fournisseur et le modèle remontent avec le texte. Ce n'est pas décoratif : ce
+     * qui est produit ici finit dans un bilan d'enfant, et « quel modèle a répondu » est
+     * la première question qu'on posera le jour où quelque chose cloche.
+     */
+    return json(res, 200, { ok: true, texte: r.texte, modele: r.modele,
+                            fournisseur: r.fournisseur, jetons: r.jetons });
   } catch (e) {
+    // Le client porté nomme déjà les refus un par un — clé invalide, solde épuisé, proxy
+    // sortant. On relaie SON message, on ne le réécrit pas moins bien.
+    if (e instanceof AppelError) return json(res, 502, { dit: e.message });
     return json(res, 502, { dit: 'Le fournisseur est injoignable. Vérifie la connexion.' });
   }
 }
@@ -83,7 +105,7 @@ createServer(async (req, res) => {
   if (req.url === '/api/modele' && req.method === 'POST') return appelerLeModele(req, res);
   // L'état, pour que l'écran sache s'il peut proposer quoi que ce soit — SANS la clé.
   if (req.url === '/api/etat') {
-    return json(res, 200, { pret: Boolean(CLE), fournisseur: FOURNISSEUR.nom });
+    return json(res, 200, { pret: Boolean(CLE), fournisseur: 'deepseek' });
   }
 
   // `normalize` puis vérification du préfixe : sans ça, `../../` sortirait du dossier.
@@ -102,6 +124,6 @@ createServer(async (req, res) => {
 }).listen(PORT, () => {
   console.log(`Ouvre http://localhost:${PORT}`);
   console.log(CLE
-    ? `Clé ${FOURNISSEUR.nom} chargée depuis l'environnement.`
-    : `Aucune clé ${FOURNISSEUR.nom} : mets-la dans .env sous ${FOURNISSEUR.variable}.`);
+    ? 'Clé DeepSeek chargée depuis l\'environnement.'
+    : 'Aucune clé DeepSeek : mets-la dans .env sous DEEPSEEK_API_KEY.');
 });

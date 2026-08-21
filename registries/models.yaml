@@ -1,0 +1,20 @@
+# Le registre des modèles — le palier déclaré, et le modèle réel derrière.
+#
+# Repris de la plateforme technique, et pour la même raison : un geste déclare un PALIER,
+# jamais `deepseek-chat`. Un nom de modèle change tous les six mois, un palier non — et le
+# jour où le modèle change SOUS la consigne, c'est ce fichier qui dit lesquels sont
+# concernés.
+#
+# Une colonne par fournisseur : il n'y en a qu'un ici, mais la place est faite. Le jour où
+# l'école impose autre chose, seule cette colonne s'ajoute.
+
+models:
+  - tier: nano
+    deepseek: deepseek-chat
+    pour: ce qui est court et cadré — réécrire une consigne, un mot aux familles
+  - tier: mid
+    deepseek: deepseek-chat
+    pour: le quotidien — préparer une séance, classer une pile de copies
+  - tier: large
+    deepseek: deepseek-reasoner
+    pour: ce qui demande de raisonner — franchissement de cycle, équilibrer la semaine

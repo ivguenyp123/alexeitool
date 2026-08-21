@@ -15,6 +15,16 @@ node_modules/
 *.key
 *.pem
 
+# Les noms qu'une clé porte EN PRATIQUE. La liste vient de la plateforme technique,
+# où elle a été établie en regardant où les clés atterrissaient vraiment.
+cle.json
+key.json
+gcp-key.json
+vertex.json
+sa-credentials.json
+*-service-account.json
+id_rsa*
+
 # Rien de ce qui touche un enfant ne rentre au dépôt.
 # La classe, les relevés, les copies vivent sur la machine de la classe.
 classe/
