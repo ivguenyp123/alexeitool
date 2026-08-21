@@ -260,3 +260,85 @@ button{font:inherit;cursor:pointer}
 /* L'écran de la clé : le seul écran de configuration, et il n'apparaît qu'une fois. */
 .sortieForm .explique{font-size:14px;color:var(--encre2);line-height:1.6}
 .sortieForm .explique b{color:var(--encre)}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LA PILE DE COPIES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.actionsTete{ display:flex; gap:.5rem; flex-wrap:wrap; justify-content:flex-end; }
+
+/* La porte de la correction se distingue : c'est le seul geste qui n'appartient à
+   aucun jour, et le seul qu'on cherche le soir. */
+.lien.pile{ border-color:var(--cm1); color:var(--cm1); }
+
+/* ── Le dépôt ────────────────────────────────────────────────────────────── */
+.depot{
+  border:2px dashed var(--trait2); border-radius:var(--r);
+  padding:1.1rem 1rem; text-align:center; cursor:pointer;
+  background:var(--creux); display:grid; gap:.25rem;
+  transition:border-color .12s, background .12s;
+}
+.depot:hover, .depot:focus-visible{ border-color:var(--accent); }
+.depot.survol{ border-color:var(--accent); background:var(--ce2-voile); }
+.depot b{ font-size:1.02rem; }
+.depot small{ color:var(--encre2); font-size:.86rem; }
+.depot code{ font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:.9em; }
+.depot .pasDePhoto{ color:var(--encre3); font-size:.8rem; margin-top:.3rem; }
+
+.collage{ margin:.7rem 0; }
+.collage summary{ cursor:pointer; color:var(--accent); font-size:.9rem; }
+.collage textarea{
+  width:100%; margin-top:.5rem; padding:.6rem; border:1px solid var(--trait);
+  border-radius:10px; background:var(--carte); color:var(--encre);
+  font:inherit; resize:vertical;
+}
+.collage button{ margin-top:.4rem; }
+
+/* Un refus se lit en entier : il dit quoi faire à la place. */
+.refus{
+  white-space:pre-wrap; background:var(--alerte-voile); color:var(--alerte);
+  border-radius:10px; padding:.6rem .75rem; font-size:.88rem; margin:.6rem 0;
+}
+
+.pileEtat{ display:flex; align-items:center; gap:.5rem; margin:.9rem 0 .3rem; }
+
+/* CEUX QUI N'ONT PAS RENDU. La ligne pour laquelle cet écran existe : une copie
+   absente ne se présente pas, et on ne s'en aperçoit qu'en rendant la pile. */
+.manque{
+  background:var(--cm1-voile); color:var(--cm1); border-radius:10px;
+  padding:.55rem .75rem; font-size:.88rem; margin:.2rem 0 .6rem;
+}
+
+/* ── Les copies ──────────────────────────────────────────────────────────── */
+.copies{ display:grid; gap:.4rem; }
+.copie{
+  display:grid; grid-template-columns:auto 1fr auto; gap:.6rem; align-items:start;
+  border:1px solid var(--trait); border-radius:10px; padding:.5rem .6rem;
+  background:var(--carte);
+}
+/* Une copie non rattachée est signalée à l'œil : c'est une action qui reste à faire,
+   pas une erreur. */
+.copie.orpheline{ border-color:var(--cm1); background:var(--cm1-voile); }
+.copie .qui{
+  font:inherit; font-size:.85rem; padding:.25rem; max-width:9.5rem;
+  border:1px solid var(--trait2); border-radius:8px;
+  background:var(--carte); color:var(--encre);
+}
+.copie .corps{ min-width:0; }
+.copie .nomFichier{ font-size:.8rem; color:var(--encre3); }
+.copie .apercu{
+  font-size:.88rem; color:var(--encre2); white-space:pre-wrap;
+  overflow-wrap:anywhere; margin-top:.1rem;
+}
+.copie .pourquoi{ font-size:.8rem; color:var(--cm1); margin-top:.2rem; }
+.copie .retirer{
+  border:0; background:none; color:var(--encre3); cursor:pointer;
+  font-size:1.2rem; line-height:1; padding:.1rem .3rem;
+}
+.copie .retirer:hover{ color:var(--alerte); }
+
+#pileAttendu, #pileConsigne, .libre{
+  width:100%; font:inherit; padding:.5rem; border:1px solid var(--trait);
+  border-radius:10px; background:var(--carte); color:var(--encre);
+}
+.libre{ margin-top:.4rem; }

@@ -34,8 +34,10 @@ fetch('../registres/attendus.json')
   .then((r) => (r.ok ? r.json() : null))
   .then((j) => { if (j?.attendus) ATTENDUS = j.attendus; })
   .catch(() => { /* pas déposé : c'est un état normal, pas une panne */ });
-import { table, caviarder, restituer, restes } from '../lib/eleves.js';
+import { table, caviarder, restes } from '../lib/eleves.js';
 import { lire, ecrire, durable } from './stockage.js';
+import { envoyer } from './envoi.js';
+import { installerLaPile } from './pile-ecran.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (t, c, x) => {
@@ -263,13 +265,6 @@ function ouvrirMoment(index) {
  */
 async function lancer(g, c) {
   $('moment').close();
-  $('sortieNom').textContent = g.nom;
-  $('sortieTexte').textContent = '';
-  $('sortieEtat').textContent = 'Envoi…';
-  $('sortieEtat').className = 'etat';
-  $('sortieMeta').textContent = '';
-  $('sortie').showModal();
-
   const classe = table(etat.classe || []);
   const precision = $('precision')?.value || '';
   const brut = texteDeGeste(g, c, { classe: etat.classe || [], attendus: ATTENDUS, precision });
@@ -287,37 +282,15 @@ async function lancer(g, c) {
    * précision libre en contient, puisque c'est la seule partie qu'une personne a tapée.
    */
   const suspects = restes(caviarder(precision, classe).texte, classe);
-  if (suspects.length) {
-    $('sortieMeta').textContent = 'À vérifier — dans ta précision, des mots qui ressemblent '
-      + 'à des prénoms et que la liste de classe ne connaît pas : '
-      + `${suspects.slice(0, 6).map((x) => x.mot).join(', ')}.`;
-  }
+  const avant = [
+    suspects.length && 'À vérifier — dans ta précision, des mots qui ressemblent à des '
+      + 'prénoms et que la liste de classe ne connaît pas : '
+      + `${suspects.slice(0, 6).map((x) => x.mot).join(', ')}.`,
+    combien && `${combien} prénom(s) remplacé(s) à l'envoi.`
+  ].filter(Boolean).join('\n');
 
-  try {
-    const r = await fetch('/api/modele', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ texte, consigne: g.consigne, caviarde: true, palier: g.palier || 'mid' })
-    });
-    const j = await r.json();
-    if (!r.ok || !j.ok) {
-      $('sortieEtat').className = 'etat rate';
-      $('sortieEtat').textContent = j.dit || 'L\'appel a échoué.';
-      return;
-    }
-    $('sortieEtat').textContent = '';
-    // On remet les prénoms pour l'affichage : l'enseignant lit des prénoms, le modèle
-    // n'a jamais vu que des numéros.
-    $('sortieTexte').textContent = restituer(j.texte, classe);
-    const m = [`${j.fournisseur} · ${j.modele}`];
-    if (j.jetons) m.push(`${j.jetons.entree}+${j.jetons.sortie} jetons`);
-    if (combien) m.push(`${combien} prénom(s) remplacé(s) à l'envoi`);
-    $('sortieMeta').textContent = [$('sortieMeta').textContent, m.join(' · ')]
-      .filter(Boolean).join('\n');
-  } catch {
-    $('sortieEtat').className = 'etat rate';
-    $('sortieEtat').textContent = 'Le serveur local ne répond pas. Est-ce que `npm start` tourne ?';
-  }
+  await envoyer({ nom: g.nom, consigne: g.consigne, texte, classe,
+                  palier: g.palier || 'mid', avant });
 }
 
 /* ── La clé, au premier lancement ─────────────────────────────────────────── */
@@ -491,6 +464,8 @@ $('voirTout').onclick = () => { toutVoir = !toutVoir; rendre(); };
 $('fermerMoment').onclick = () => $('moment').close();
 $('fermerPasEncore').onclick = () => $('pasEncore').close();
 $('modifierHoraire').onclick = () => { $('moment').close(); ouvrirEdition(enEdition); };
+
+installerLaPile({ etat, sauver: () => ecrire(etat), attendus: () => ATTENDUS });
 
 rendre();
 verifierLaCle();

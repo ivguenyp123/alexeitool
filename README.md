@@ -123,14 +123,47 @@ dictée ne se propose pas sur un créneau de sport. C'est la différence entre
 « voilà tout ce que je sais faire » et « voilà ce qui sert ici ».
 
 Sur chaque geste, avant qu'on clique : **ce qu'il lit**, et **ce qu'il ne fera
-jamais**. Pas dans une aide que personne n'ouvre — sur le bouton.
+jamais**. Pas dans une aide que personne n'ouvre — sur le bouton. Et un bouton
+qui ne fait rien est pire que pas de bouton : ceux qui ne peuvent pas encore
+travailler sont désactivés, et ils disent pourquoi.
 
-Rien n'est branché sur un modèle, et l'écran le dit. Un bouton qui ne fait rien
-est pire que pas de bouton.
+### La pile à corriger
+
+C'est la seule porte qui n'appartient à aucun jour, et elle est dans l'en-tête :
+corriger n'est pas un moment de la semaine, c'est ce qu'on fait le soir, après.
+
+On dépose des copies (fichiers texte, ou collées), l'outil essaie de reconnaître
+l'élève, et **cinq gestes** deviennent possibles : ce qui bloque et pour qui, le
+mot à écrire sur chaque copie, les erreurs de dictée par nature, où le
+raisonnement casse, et ce que ça change pour la suite.
+
+Trois décisions valent d'être dites :
+
+**Pas de photos.** Deux raisons, et chacune suffirait : le modèle branché ici lit
+du texte, et surtout le prénom écrit en haut d'une copie photographiée ne peut
+pas être masqué. Le caviardage travaille sur du texte ; accepter les images
+ouvrirait une fenêtre à côté d'une porte fermée. C'est plus de travail de
+recopier, et c'est le seul chemin honnête.
+
+**On ne devine jamais l'auteur d'une copie.** Le prénom est cherché dans le nom
+du fichier puis dans la première ligne. Quand deux enfants portent ce prénom, ou
+que deux prénoms apparaissent, la copie reste **non rattachée** et l'écran dit
+laquelle des deux raisons s'applique. Se tromper d'élève est la faute la plus
+coûteuse que cet outil puisse commettre : une remarque au mauvais enfant, une
+observation dans le mauvais dossier.
+
+**Qui n'a pas rendu est nommé.** Vingt-deux copies pour vingt-six élèves : les
+quatre absents ne se manifestent pas tout seuls, et on ne s'en aperçoit qu'en
+rendant la pile. Avec la règle qui va avec, répétée au modèle à chaque envoi :
+
+> **Ne pas avoir rendu n'est pas ne pas savoir.**
+
+Aucune de ces cinq consignes ne peut produire une note, un rang, ni un groupe de
+niveau — et c'est vérifié par les tests, pas seulement écrit dans le texte.
 
 ### Les modules
 
-Trois modules purs, testés, sans aucune dépendance. Ce sont les fondations qui
+Des modules purs, testés, sans aucune dépendance. Ce sont les fondations qui
 ne dépendent **pas** de ce que l'enseignant nous dira — le reste attend de lui
 avoir parlé.
 

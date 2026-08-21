@@ -25,7 +25,17 @@
       <h1>Ma semaine</h1>
       <p class="classe" id="classe">CE2-CM1 · 26 élèves</p>
     </div>
-    <button class="lien" id="voirTout" type="button">Voir les quatre jours</button>
+    <!--
+      LA PILE EST DANS L'EN-TÊTE, PAS DANS UN MENU.
+
+      Corriger n'est pas un moment de la semaine : c'est ce qu'on fait le soir, après. Le
+      geste n'a donc aucun créneau où se ranger — il lui faut sa porte, visible depuis
+      n'importe quel jour.
+    -->
+    <div class="actionsTete">
+      <button class="lien pile" id="ouvrirPile" type="button">La pile à corriger</button>
+      <button class="lien" id="voirTout" type="button">Voir les quatre jours</button>
+    </div>
   </div>
   <nav class="jours" id="jours" aria-label="Choisir un jour"></nav>
 </header>
@@ -124,6 +134,90 @@
     <div class="boutons">
       <span class="sp"></span>
       <button type="button" class="plein" id="fermerPasEncore">Compris</button>
+    </div>
+  </div>
+</dialog>
+
+<!--
+  LA PILE DE COPIES.
+
+  L'ordre des champs suit l'ordre du geste réel : on dépose D'ABORD, on renseigne ensuite.
+  Un formulaire à remplir avant de pouvoir commencer est un formulaire qu'on ne remplit pas
+  un dimanche soir.
+-->
+<dialog id="pile" class="edition feuille">
+  <div class="dedansFeuille">
+    <h2>La pile à corriger</h2>
+
+    <div class="depot" id="pileDepot" tabindex="0" role="button"
+         aria-label="Déposer des copies">
+      <b>Dépose les copies ici</b>
+      <small>fichiers <code>.txt</code> — ou clique pour les choisir</small>
+      <!--
+        PAS DE PHOTOS, ET C'EST DIT AVANT L'ESSAI.
+
+        Le modèle ne lit que du texte, et surtout : le prénom écrit en haut d'une copie
+        photographiée ne peut pas être masqué. Le refus existe aussi dans le code — ici,
+        il évite juste de le découvrir après avoir sélectionné vingt-six photos.
+      -->
+      <small class="pasDePhoto">Les photos ne peuvent pas entrer : le prénom écrit sur la
+        copie ne pourrait pas être masqué avant l'envoi.</small>
+    </div>
+    <input type="file" id="pileFichiers" multiple accept=".txt,.md,.text,text/plain" hidden>
+
+    <details class="collage">
+      <summary>Ou coller une copie</summary>
+      <textarea id="pileCollage" rows="4"
+        placeholder="Le prénom sur la première ligne, puis ce que l'élève a écrit — fautes comprises."></textarea>
+      <button type="button" id="pileColler">Ajouter cette copie</button>
+    </details>
+
+    <p class="refus" id="pileRefus" hidden></p>
+
+    <div class="pileEtat">
+      <b id="pileCompte">0 copie</b>
+      <span class="sp"></span>
+      <button type="button" class="lien" id="pileVider" hidden>Vider la pile</button>
+    </div>
+    <p class="manque" id="pileManque" hidden></p>
+    <div class="copies" id="pileCopies"></div>
+
+    <div class="rangee">
+      <label>Exercice
+        <input type="text" id="pileExercice" placeholder="Dictée du 12 mars"></label>
+      <label>Niveau
+        <select id="pileNiveau">
+          <option value="">les deux</option>
+          <option value="CE2">CE2</option>
+          <option value="CM1">CM1</option>
+        </select></label>
+      <label>Domaine <select id="pileDomaine"></select></label>
+    </div>
+
+    <label class="precision">
+      <span>La consigne telle qu'elle a été donnée aux élèves (facultatif)</span>
+      <textarea id="pileConsigne" rows="2"></textarea>
+    </label>
+
+    <label class="precision">
+      <span>L'attendu visé</span>
+      <select id="pileAttendu"></select>
+    </label>
+    <input type="text" id="pileAttenduLibre" class="libre" hidden
+           placeholder="l'attendu, tel que tu le formules">
+    <p class="note" id="pileAttenduNote"></p>
+
+    <label class="precision">
+      <span>Une précision, si tu veux (facultatif)</span>
+      <input id="pilePrecision" type="text"
+             placeholder="par exemple : dictée non préparée, faite en fin de journée">
+    </label>
+
+    <div class="gestes" id="pileGestes"></div>
+
+    <div class="boutons">
+      <span class="sp"></span>
+      <button type="button" class="plein" id="fermerPile">Fermer</button>
     </div>
   </div>
 </dialog>
