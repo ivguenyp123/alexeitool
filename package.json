@@ -4,9 +4,12 @@
   "private": true,
   "type": "module",
   "description": "Un outil pour une classe de CE2-CM1. Le programme au code, l'explication à l'agent — et rien qui sorte de la machine sans qu'on l'ait décidé.",
-  "engines": { "node": ">=20.12" },
+  "engines": {
+    "node": ">=20.12"
+  },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "start": "node --env-file-if-exists=.env serve.js"
+    "start": "node --env-file-if-exists=.env serve.js",
+    "programme": "node scripts/programme.js"
   }
 }

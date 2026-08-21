@@ -23,6 +23,17 @@ import { JOURS, DOMAINES, REGIMES_DITS, NIVEAUX, HORAIRES,
 import { SEMAINE, CLASSE } from '../lib/exemple.js';
 import { ici } from '../lib/gestes.js';
 import { texteDeGeste } from '../lib/contexte.js';
+
+/*
+ * Les attendus officiels, s'ils ont été déposés — `npm run programme` les télécharge
+ * depuis éduscol. Absents, tout continue de marcher : les consignes annoncent alors le
+ * manque au lieu de laisser le modèle combler.
+ */
+let ATTENDUS = [];
+fetch('../registres/attendus.json')
+  .then((r) => (r.ok ? r.json() : null))
+  .then((j) => { if (j?.attendus) ATTENDUS = j.attendus; })
+  .catch(() => { /* pas déposé : c'est un état normal, pas une panne */ });
 import { table, caviarder, restituer, restes } from '../lib/eleves.js';
 import { lire, ecrire, durable } from './stockage.js';
 
@@ -261,7 +272,7 @@ async function lancer(g, c) {
 
   const classe = table(etat.classe || []);
   const precision = $('precision')?.value || '';
-  const brut = texteDeGeste(g, c, { classe: etat.classe || [], precision });
+  const brut = texteDeGeste(g, c, { classe: etat.classe || [], attendus: ATTENDUS, precision });
   const { texte, combien } = caviarder(brut, classe);
 
   /*

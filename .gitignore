@@ -29,3 +29,8 @@ id_rsa*
 # La classe, les relevés, les copies vivent sur la machine de la classe.
 classe/
 eleves.json
+
+# Les attendus téléchargés : ils viennent d éduscol, ils se retéléchargent.
+# Mais une fois CORRIGÉS à la main par l enseignant, ils méritent d être versionnés —
+# alors on les garde. La ligne ci-dessous est commentée exprès.
+# registres/attendus.json
