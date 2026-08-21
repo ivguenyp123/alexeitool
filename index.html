@@ -72,6 +72,33 @@
   LA RÉPONSE. Le texte brut, dans une police à chasse fixe : ce qui sort est une fiche de
   préparation qu'on recopie, pas un article. L'alignement compte plus que l'élégance.
 -->
+<!--
+  LA CLÉ, DEPUIS L'ÉCRAN.
+
+  Elle s'ouvre toute seule au premier lancement sans clé. C'est le seul écran de
+  configuration de l'outil, et il n'apparaît qu'une fois.
+-->
+<dialog id="pasDeCle" class="edition">
+  <div class="sortieForm">
+    <h2>Il manque la clé</h2>
+    <p class="explique">
+      L'outil a besoin d'une clé DeepSeek pour préparer, corriger et rédiger. Colle-la ici,
+      une fois. Elle est enregistrée <b>sur cette machine</b>, dans un fichier que git
+      ignore — elle ne partira jamais au dépôt, et l'écran ne la réaffichera jamais.
+    </p>
+    <label class="precision">
+      <span>La clé</span>
+      <input id="champCle" type="password" autocomplete="off" spellcheck="false"
+             placeholder="sk-…">
+    </label>
+    <p class="etat" id="cleEtat"></p>
+    <div class="boutons">
+      <span class="sp"></span>
+      <button type="button" class="plein" id="cleValider">Enregistrer</button>
+    </div>
+  </div>
+</dialog>
+
 <dialog id="sortie" class="edition feuille">
   <div class="sortieForm">
     <h2 id="sortieNom">…</h2>

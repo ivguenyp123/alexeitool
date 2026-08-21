@@ -309,6 +309,51 @@ async function lancer(g, c) {
   }
 }
 
+/* ── La clé, au premier lancement ─────────────────────────────────────────── */
+
+/**
+ * On demande la clé À L'ÉCRAN plutôt que de renvoyer vers un terminal.
+ *
+ * Le message du serveur avait beau être juste, il envoyait éditer un fichier caché — et,
+ * en Codespace, dans un labyrinthe de secrets injectés au démarrage du conteneur. Un
+ * enseignant n'ira jamais là. Personne n'y va volontiers.
+ *
+ * La clé ne repart jamais vers ici : la route ne rend que `pret`.
+ */
+async function verifierLaCle() {
+  try {
+    const r = await fetch('/api/etat');
+    const j = await r.json();
+    if (!j.pret) $('pasDeCle').showModal();
+  } catch { /* serveur absent : l'écran marche quand même, sans les gestes */ }
+}
+
+$('cleValider').onclick = async () => {
+  const cle = $('champCle').value.trim();
+  $('cleEtat').className = 'etat';
+  $('cleEtat').textContent = 'Enregistrement…';
+  try {
+    const r = await fetch('/api/cle', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ cle })
+    });
+    const j = await r.json();
+    if (!r.ok) {
+      $('cleEtat').className = 'etat rate';
+      $('cleEtat').textContent = j.dit || 'Refusée.';
+      return;
+    }
+    // On efface le champ tout de suite : la clé n'a aucune raison de rester à l'écran.
+    $('champCle').value = '';
+    $('pasDeCle').close();
+  } catch {
+    $('cleEtat').className = 'etat rate';
+    $('cleEtat').textContent = 'Le serveur local ne répond pas.';
+  }
+};
+
+$('champCle').onkeydown = (e) => { if (e.key === 'Enter') $('cleValider').click(); };
+
 $('sortieFermer').onclick = () => $('sortie').close();
 $('sortieCopier').onclick = async () => {
   try {
@@ -437,3 +482,4 @@ $('fermerPasEncore').onclick = () => $('pasEncore').close();
 $('modifierHoraire').onclick = () => { $('moment').close(); ouvrirEdition(enEdition); };
 
 rendre();
+verifierLaCle();

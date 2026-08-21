@@ -256,3 +256,7 @@ button{font:inherit;cursor:pointer}
 .precision input{font:inherit;font-size:15px;min-height:44px;padding:10px 12px;
                  border-radius:10px;border:1px solid var(--trait2);
                  background:var(--papier);color:var(--encre);width:100%}
+
+/* L'écran de la clé : le seul écran de configuration, et il n'apparaît qu'une fois. */
+.sortieForm .explique{font-size:14px;color:var(--encre2);line-height:1.6}
+.sortieForm .explique b{color:var(--encre)}

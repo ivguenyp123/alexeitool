@@ -15,7 +15,7 @@
  */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { extname, join, normalize } from 'node:path';
 import { createMoteur } from './runtime/moteur.js';
 import { AppelError } from './runtime/erreur.js';
@@ -39,8 +39,42 @@ const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; ch
  * clé, c'est le geste qui la fait fuiter. On accepte donc les deux, et on repasse le
  * second sous le premier pour que le client porté n'ait rien à savoir de tout ça.
  */
-const CLE = process.env.DEEPSEEK_API_KEY || process.env.ALEXEI || '';
-if (CLE && !process.env.DEEPSEEK_API_KEY) process.env.DEEPSEEK_API_KEY = CLE;
+let CLE = process.env.DEEPSEEK_API_KEY || process.env.ALEXEI || '';
+if (CLE) process.env.DEEPSEEK_API_KEY = CLE;
+
+/**
+ * ── LA CLÉ SE POSE DEPUIS L'ÉCRAN, ET PLUS DEPUIS UN TERMINAL ───────────────
+ *
+ * Un enseignant n'ouvrira jamais un terminal pour éditer un fichier caché. Et même pour
+ * quelqu'un qui sait le faire, la chaîne « secret GitHub → variable → Codespace →
+ * redémarrage du conteneur » est un labyrinthe où l'on tourne longtemps avant de
+ * comprendre qu'un secret n'est injecté qu'au démarrage.
+ *
+ * Alors on colle la clé dans l'écran, une fois. Elle est écrite dans `.env`, en `0600`,
+ * sur CETTE machine — exactement ce qu'aurait fait la main dans le terminal, sans le
+ * labyrinthe. Elle ne repart jamais vers le navigateur : les routes disent `pret: true`
+ * ou `pret: false`, rien d'autre.
+ *
+ * Le stockage du navigateur est écarté exprès : ce qui y est posé se lit dans les outils
+ * de développement, et une clé lisible dans une page est une clé publiée.
+ */
+function poserLaCle(brute) {
+  const cle = String(brute || '').trim();
+  // Un format minimal, pour attraper la faute de copier-coller — pas pour valider la clé,
+  // ce que seul le fournisseur peut faire.
+  if (!/^sk-[A-Za-z0-9_-]{10,}$/.test(cle)) {
+    return { ok: false, dit: 'Cette clé n\'a pas la forme attendue : elle commence par '
+      + '`sk-`. Vérifie le copier-coller — un espace ou un retour à la ligne suffit.' };
+  }
+  try {
+    writeFileSync(join(RACINE, '.env'), `DEEPSEEK_API_KEY=${cle}\n`, { mode: 0o600 });
+  } catch (e) {
+    return { ok: false, dit: 'Impossible d\'écrire le fichier `.env` ici : ' + e.code };
+  }
+  CLE = cle;
+  process.env.DEEPSEEK_API_KEY = cle;
+  return { ok: true };
+}
 const MODELS = lireModeles();
 
 function lireModeles() {
@@ -118,6 +152,22 @@ createServer(async (req, res) => {
   // L'état, pour que l'écran sache s'il peut proposer quoi que ce soit — SANS la clé.
   if (req.url === '/api/etat') {
     return json(res, 200, { pret: Boolean(CLE), fournisseur: 'deepseek' });
+  }
+
+  // Poser la clé depuis l'écran. Elle ne ressort jamais : on ne rend que `pret`.
+  if (req.url === '/api/cle' && req.method === 'POST') {
+    const morceaux = [];
+    for await (const m of req) {
+      morceaux.push(m);
+      if (morceaux.reduce((s, x) => s + x.length, 0) > 8192) {
+        return json(res, 413, { dit: 'Trop long pour être une clé.' });
+      }
+    }
+    let corps = {};
+    try { corps = JSON.parse(Buffer.concat(morceaux).toString('utf8') || '{}'); }
+    catch { return json(res, 400, { dit: 'Requête illisible.' }); }
+    const r = poserLaCle(corps.cle);
+    return json(res, r.ok ? 200 : 400, r.ok ? { pret: true } : { dit: r.dit });
   }
 
   // `normalize` puis vérification du préfixe : sans ça, `../../` sortirait du dossier.
