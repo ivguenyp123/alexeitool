@@ -24,7 +24,7 @@
  * numéros ne lui sert à rien. Ce sont les numéros qui partent au fournisseur, pas
  * l'inverse.
  */
-import { docx } from '../lib/docx.js';
+import { docx, cellule } from '../lib/docx.js';
 import { nu, enMorceaux } from '../lib/miseenforme.js';
 import { documentDeCorrection } from '../lib/document.js';
 
@@ -39,13 +39,25 @@ export function noterCeQuOnExporte(infos) { courant = { ...courant, ...infos }; 
 const leJour = () => new Date().toLocaleDateString('fr-FR',
   { day: 'numeric', month: 'long', year: 'numeric' });
 
-/** Un nom de fichier tenable : sans accent, sans espace, sans surprise. */
-function nomDeFichier(ext) {
-  const base = (courant.exercice || courant.nomDuGeste || 'correction')
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+/**
+ * Un nom de fichier tenable : sans accent, sans espace, sans surprise.
+ *
+ * Les ligatures ne se décomposent PAS en NFD : « cœur » sortait « c-ur ». Elles sont donc
+ * traitées à part, avant tout le reste.
+ */
+const LIGATURES = [[/œ/g, 'oe'], [/Œ/g, 'OE'], [/æ/g, 'ae'], [/Æ/g, 'AE']];
+export function enNomDeFichier(texte, defaut = 'fiche') {
+  let t = String(texte || '');
+  for (const [de, a] of LIGATURES) t = t.replace(de, a);
+  const base = t.normalize('NFD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+  return base || defaut;
+}
+
+function nomDeFichier(ext) {
+  const base = enNomDeFichier(courant.exercice || courant.nomDuGeste, 'correction');
   const jour = new Date().toISOString().slice(0, 10);
-  return `${base || 'correction'}-${jour}.${ext}`;
+  return `${base}-${jour}.${ext}`;
 }
 
 /**
@@ -129,11 +141,14 @@ function jetons(bloc) {
   for (const m of bloc.morceaux || []) {
     // On coupe sur les espaces en les GARDANT : « dor dort » perdrait sa séparation, et
     // deux mots corrigés se colleraient.
-    for (const bout of String(m.texte).split(/(\s+)/)) {
+    // On coupe sur les espaces ORDINAIRES seulement : l'espace insécable est là pour
+    // tenir « 26 − 16 » sur une seule ligne, et Word en fait autant.
+    for (const bout of String(m.texte).split(/( +)/)) {
       if (bout === '') continue;
       out.push({ texte: bout, rouge: m.rouge, barre: m.barre, souligne: m.souligne,
-                 couleur: m.couleur,
-                 gras: m.gras || bloc.type === 'titre', taille: m.taille });
+                 couleur: m.couleur || bloc.couleur,
+                 gras: m.gras || bloc.gras || bloc.type === 'titre',
+                 taille: m.taille || bloc.taille });
     }
   }
   return out;
@@ -190,30 +205,55 @@ const ACCENT = '#1B6B8C';
 function planDuTableau(ctx, bloc, large) {
   const rangs = bloc.rangs || [];
   const nbCol = Math.max(1, ...rangs.map((r) => r.length));
-  const GOUTTIERE = 16;
+  /*
+   * ── LA GOUTTIÈRE SE RESSERRE QUAND LA GRILLE EST DENSE ────────────────────
+   *
+   * Seize pixels entre deux colonnes, c'est juste sur une fiche de séance et c'est
+   * ruineux sur un coloriage à quatorze colonnes : deux cents pixels s'en vont en vide
+   * et « 26 − 16 » se coupe en deux lignes. Une case qui déborde rend la grille bancale.
+   */
+  const GOUTTIERE = nbCol > 8 ? 6 : 16;
   const colonne = Math.floor((large - GOUTTIERE * (nbCol - 1)) / nbCol);
 
   const plan = rangs.map((rang, iRang) => {
     const cells = Array.from({ length: nbCol }, (_, i) => {
+      // Une cellule peut porter une couleur, un fond, une taille — cf. `cellule()`.
+      const c = cellule(rang[i]);
       const lignes = [];
-      for (const texte of rang[i] || []) {
+      for (const texte of c.lignes) {
         /*
          * Le gras `**ainsi**` est traité ICI aussi. Il ne l'était que côté Word : l'image
          * affichait « **Objectif** » avec ses astérisques, au milieu d'une fiche par
          * ailleurs propre.
          */
-        const morceaux = enMorceaux(texte)
-          .map((m) => ({ ...m, gras: m.gras || (iRang === 0 && !bloc.cartes) }));
+        const entete = iRang === 0 && !bloc.cartes && bloc.entete !== false;
+        const morceaux = enMorceaux(texte).map((m) => ({
+          ...m,
+          gras: m.gras || c.gras || entete,
+          couleur: m.couleur || c.couleur,
+          taille: m.taille || c.taille || bloc.taille
+        }));
         lignes.push(...enLignes(ctx, { type: 'paragraphe', morceaux }, colonne));
       }
-      return lignes;
+      return { lignes, fond: c.fond,
+               centre: c.centre !== undefined ? c.centre : (bloc.centre || bloc.cartes) };
     });
-    const haut = Math.max(1, ...cells.map((c) => c.length)) * 28 + (bloc.cartes ? 40 : 14);
-    // Pas d'en-tête sur une planche de cartes : ce sont douze cartes égales.
-    return { cells, haut, entete: iRang === 0 && !bloc.cartes };
+    const haut = Math.max(1, ...cells.map((c) => c.lignes.length)) * 28
+      + (bloc.cartes ? 40 : 14);
+    // Pas d'en-tête sur une planche de cartes ni sur une grille : ce sont des cases
+    // égales, et une première rangée en gras bleu les fait passer pour des titres.
+    return { cells, haut, entete: iRang === 0 && !bloc.cartes && bloc.entete !== false };
   });
   return { plan, colonne, gouttiere: GOUTTIERE,
            hauteur: plan.reduce((s, r) => s + r.haut, 0) + 10 };
+}
+
+/** Un rectangle à coins ronds, avec le repli des navigateurs qui n'ont pas `roundRect`. */
+function pave(ctx, x, y, l, h, r = 8) {
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, l, h, r);
+  else ctx.rect(x, y, l, h);
+  ctx.fill();
 }
 
 function dessiner(blocs) {
@@ -255,42 +295,71 @@ function dessiner(blocs) {
 
     if (p.tableau) {
       const { plan: rangs, colonne, gouttiere } = p.tableau;
+      const nbCol = Math.max(1, ...rangs.map((r) => r.cells.length));
+      const haut0 = y;
+      const bas = rangs.reduce((t, r) => t + r.haut, 0);
+      const gauche = MARGE - gouttiere / 2;
+      const droite = Math.min(LARGEUR - MARGE + gouttiere / 2,
+                              gauche + nbCol * (colonne + gouttiere));
+
+      /*
+       * ── TROIS PASSES, ET L'ORDRE COMPTE ───────────────────────────────
+       *
+       * Les fonds d'abord, la grille ensuite, le texte en dernier. Peint dans un autre
+       * ordre, l'aplat d'une case recouvre le filet de sa voisine et la grille sort
+       * trouée — ou le fond efface le calcul qu'il est censé porter.
+       */
+      let yf = y;
       for (const rang of rangs) {
-        /*
-         * ── LES TRAITS DE COUPE EXISTENT AUSSI SUR L'IMAGE ──────────────────
-         *
-         * Ils étaient dessinés en Word et absents du PNG : une planche de cartes sans
-         * trait de coupe est une feuille qu'on ne sait pas découper. C'est pourtant tout
-         * ce qui la rend utilisable.
-         */
-        ctx.strokeStyle = p.bloc.decouper ? '#9A9A9A' : '#E2DED5';
+        rang.cells.forEach((cell, i) => {
+          if (!cell.fond) return;
+          ctx.fillStyle = `#${cell.fond}`;
+          pave(ctx, MARGE + i * (colonne + gouttiere) - gouttiere / 2 + 1, yf - 5,
+               colonne + gouttiere - 2, rang.haut - 2, p.bloc.cartes ? 10 : 3);
+        });
+        yf += rang.haut;
+      }
+
+      /*
+       * LA GRILLE EN ENTIER, TRAITS VERTICAUX COMPRIS. Le Word les traçait, l'image non :
+       * un coloriage magique sans séparation entre les cases est une page de calculs, pas
+       * un coloriage — l'enfant ne sait pas quelle surface colorier.
+       */
+      if (!p.bloc.sansBordure) {
+        ctx.strokeStyle = p.bloc.bordure ? `#${p.bloc.bordure}`
+          : p.bloc.decouper ? '#9A9A9A' : '#E2DED5';
         ctx.lineWidth = 1;
         if (p.bloc.decouper) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.moveTo(MARGE, y - 6);
-        ctx.lineTo(LARGEUR - MARGE, y - 6);
-        ctx.stroke();
-
-        // Et les traits verticaux, sinon on ne sait pas où couper entre deux cartes.
-        if (p.bloc.decouper) {
-          for (let i = 1; i < rang.cells.length; i++) {
-            const x = MARGE + i * (colonne + gouttiere) - gouttiere / 2;
-            ctx.beginPath();
-            ctx.moveTo(x, y - 6);
-            ctx.lineTo(x, y + rang.haut - 6);
-            ctx.stroke();
-          }
+        for (let i = 0; i <= nbCol; i++) {
+          const x = Math.min(droite, gauche + i * (colonne + gouttiere));
+          ctx.beginPath();
+          ctx.moveTo(x, haut0 - 6);
+          ctx.lineTo(x, haut0 + bas - 6);
+          ctx.stroke();
+        }
+        // Le trait du bas compris : sans lui la dernière rangée n'a pas de bord, et on
+        // découpe onze cartes proprement pour laisser à la douzième un bout de page.
+        let yl = haut0;
+        for (let k = 0; k <= rangs.length; k++) {
+          ctx.beginPath();
+          ctx.moveTo(gauche, yl - 6);
+          ctx.lineTo(droite, yl - 6);
+          ctx.stroke();
+          yl += rangs[k]?.haut || 0;
         }
         ctx.setLineDash([]);
+      }
 
-        rang.cells.forEach((lignes, i) => {
-          let yc = y;
+      for (const rang of rangs) {
+        rang.cells.forEach((cell, i) => {
           const x0 = MARGE + i * (colonne + gouttiere);
-          for (const ligne of lignes) {
-            let x = x0;
+          let yc = y + (p.bloc.cartes ? 12 : 0);
+          for (const ligne of cell.lignes) {
+            const largeurLigne = ligne.reduce((t, j) => t + j.large, 0);
+            let x = cell.centre ? x0 + Math.max(0, (colonne - largeurLigne) / 2) : x0;
             for (const j of ligne) {
               ctx.font = POLICE({ type: 'paragraphe' }, j).police;
-              ctx.fillStyle = rang.entete ? ACCENT : '#22201C';
+              ctx.fillStyle = j.couleur ? `#${j.couleur}` : rang.entete ? ACCENT : '#22201C';
               ctx.fillText(j.texte, x, yc);
               x += j.large;
             }
@@ -306,6 +375,16 @@ function dessiner(blocs) {
     y += POLICE(p.bloc).avant;
     const haut0 = y;
 
+    /*
+     * LE BANDEAU DE COULEUR se peint avant le texte, sur toute la largeur utile. C'est ce
+     * qui fait qu'une fiche se reconnaît dans une pile sans qu'on la lise.
+     */
+    if (p.bloc.fond) {
+      ctx.fillStyle = `#${p.bloc.fond}`;
+      pave(ctx, MARGE - 14, y - 10, LARGEUR - MARGE * 2 + 28,
+           p.lignes.length * p.haut + 20, 10);
+    }
+
     if (p.bloc.type === 'puce') {
       ctx.font = POLICE(p.bloc, {}).police;
       ctx.fillStyle = p.bloc.alerte ? ROUGE : '#22201C';
@@ -313,7 +392,9 @@ function dessiner(blocs) {
     }
 
     for (const ligne of p.lignes) {
-      let x = MARGE + p.retrait;
+      const largeurLigne = ligne.reduce((t, j) => t + j.large, 0);
+      let x = MARGE + p.retrait + (p.bloc.centre
+        ? Math.max(0, (LARGEUR - MARGE * 2 - p.retrait - largeurLigne) / 2) : 0);
       for (const j of ligne) {
         const { police, taille } = POLICE(p.bloc, j);
         ctx.font = police;
@@ -373,9 +454,7 @@ function dessiner(blocs) {
  * @param {string} quoi  'word' | 'image'
  */
 export function exporterBlocs(blocs, nom, quoi = 'word') {
-  const base = String(nom || 'fiche').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
-  const fichier = `${base || 'fiche'}-${new Date().toISOString().slice(0, 10)}`;
+  const fichier = `${enNomDeFichier(nom)}-${new Date().toISOString().slice(0, 10)}`;
 
   if (quoi === 'image') {
     dessiner(blocs).toBlob((b) => b && offrir(b, `${fichier}.png`, 'image/png'), 'image/png');

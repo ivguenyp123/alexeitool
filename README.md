@@ -212,9 +212,11 @@ c'est de **fabriquer**. Trente cartes à découper, une bande numérique, les
 étiquettes de la semaine — chacun prend une heure à mettre en page, et il en faut
 un nouveau chaque semaine.
 
-**Trente fiches**, rangées en six familles — calcul, numération, mesures,
-français, géométrie, la classe — avec un champ de recherche. Trente en vrac
-seraient exactement le catalogue que le reste de l'outil refuse.
+**Trente-deux fiches**, rangées en six familles — calcul, numération, mesures,
+français, géométrie, la classe — avec un champ de recherche. Trente-deux en vrac
+seraient exactement le catalogue que le reste de l'outil refuse. Chaque famille a
+sa **couleur** et son **icône**, et ce sont celles du bandeau imprimé : on cherche
+« la bleue » à l'écran et on la retrouve bleue dans la pile de feuilles.
 
 Beaucoup viennent de **Montessori** : table de Pythagore, cartes de numération
 superposables, symboles grammaticaux, alphabet mobile, cartes de nomenclature.
@@ -231,9 +233,40 @@ numérique où un nombre manque, personne ne le voit — et elle sert toute l'an
 de conjugaison, memory. La mise en page reste ici : un modèle qui dessine des
 tableaux en caractères rend des planches inutilisables.
 
-Les couleurs Montessori sont **nommées**, pas seulement affichées : une
-photocopieuse d'école est en noir et blanc, et un tableau dont le sens tient dans
-la couleur y ressort en huit gris identiques.
+#### La couleur
+
+Ce sont des enfants de huit ans, et les fiches sortent en couleur : les cartes de
+numération dans les teintes Montessori — vert, bleu, rouge —, les voyelles en
+rouge et les consonnes en bleu sur l'alphabet mobile, les billets aux couleurs
+des vrais billets, la diagonale de la table de Pythagore en ambre, une teinte par
+table sur les cartes de multiplication pour les retrier après mélange.
+
+Elle ne porte jamais **seule** : les cartes de numération sont vertes *et*
+portent « unités », les symboles grammaticaux sont rouges *et* s'appellent
+« rouge » sur la planche. Une photocopieuse d'école est en noir et blanc, et un
+tableau dont le sens tient dans la couleur y ressort en huit gris identiques.
+
+Chaque couple fond/encre passe le **contrôle de contraste** de la WCAG, rejoué
+par un test. Un fond trop sombre sous du texte noir donne une page qu'on ne lit
+pas — et on ne s'en aperçoit qu'après l'impression, cartouche vidée.
+
+#### Deux fiches qui se calculent : le coloriage magique et les points à relier
+
+Un **coloriage magique** — un calcul par case, une couleur par tranche de
+résultats, et une étoile, un cœur, une maison, un sapin ou un poisson qui
+apparaît. Les dessins ne sont pas des images : ce sont des **formes**, décrites
+par leurs sommets dans un carré de −1 à 1. On sait donc de quelle couleur est
+chaque case, et un test **refait ce que fait l'enfant** : il calcule les cent
+quatre-vingt-seize cases, lit la légende, et vérifie que le dessin sort. Une
+seule case fausse et l'enfant colorie de travers en croyant s'être trompé.
+
+Le corrigé est le même quadrillage, déjà peint — et c'est un **choix explicite**
+qui change le nom du fichier, comme pour les évaluations : on ne doit jamais
+imprimer l'un en croyant imprimer l'autre.
+
+Les **points à relier** réutilisent le même dessin par son contour. Deux points
+arrondis à la même case sont fusionnés, puis tout est renuméroté : « 7 » et « 8 »
+superposés, et l'enfant ne sait plus où aller.
 
 Deux détails qui décident si le résultat est utilisable : le verso d'une planche
 est imprimé **en miroir**, sans quoi chaque réponse tombe derrière la mauvaise

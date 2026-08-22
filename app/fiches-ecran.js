@@ -18,6 +18,8 @@
  */
 import { parFamille, DEMANDES, consigneDe, lireLesItems, planche, FORMATS }
   from '../lib/materiel.js';
+import { laFamille, pastel } from '../lib/couleurs.js';
+import { MOTIFS } from '../lib/dessins.js';
 import { fabriquer, lireLesExercices, ficheEleve, corrige, CONSIGNE_MODELE }
   from '../lib/exercices.js';
 import { blocsDeFiche, blocsDeCorrige, aucuneReponse } from '../lib/fiche.js';
@@ -62,11 +64,18 @@ export function installerLeMateriel({ etat }) {
       const fiches = famille.fiches.filter((f) => !filtre
         || `${f.nom} ${f.pour} ${f.mots.join(' ')}`.toLowerCase().includes(filtre));
       if (!fiches.length) continue;
-      zone.append(el('h3', 'famille', `${famille.nom} — ${fiches.length}`));
+      const t = laFamille(famille.nom);
+      const titre = el('h3', 'famille', `${t.emoji}  ${famille.nom} — ${fiches.length}`);
+      // La couleur de l'écran est CELLE DU BANDEAU IMPRIMÉ. Chercher « la bleue » à
+      // l'écran et la retrouver bleue dans la pile, c'est tout l'intérêt.
+      titre.style.color = `#${t.trait}`;
+      titre.style.background = `#${t.fond}`;
+      zone.append(titre);
       for (const f of fiches) {
       montrees += 1;
       const carte = el('div', 'fabrique');
-      carte.append(el('b', null, f.nom));
+      carte.style.borderLeft = `4px solid #${t.trait}`;
+      carte.append(el('b', null, `${f.emoji || t.emoji}  ${f.nom}`));
       carte.append(el('small', 'lit', f.pour));
 
       /*
@@ -77,11 +86,21 @@ export function installerLeMateriel({ etat }) {
       const champs = {};
       for (const [cle, def] of Object.entries(OPTIONS[f.id] || {})) {
         const lab = el('label', null, def.nom);
-        const inp = el('input');
-        inp.type = def.type || 'text';
+        // Un choix fermé se fait dans un menu, pas dans un champ libre : personne ne
+        // devine qu'il faut taper « sapin ».
+        const inp = def.choix ? el('select') : el('input');
+        if (def.choix) {
+          for (const c of def.choix) {
+            const o = el('option', null, c.nom);
+            o.value = c.valeur;
+            inp.append(o);
+          }
+        } else {
+          inp.type = def.type || 'text';
+          if (def.min !== undefined) inp.min = def.min;
+          if (def.max !== undefined) inp.max = def.max;
+        }
         inp.value = def.valeur;
-        if (def.min !== undefined) inp.min = def.min;
-        if (def.max !== undefined) inp.max = def.max;
         lab.append(inp);
         reglages.append(lab);
         champs[cle] = inp;
@@ -96,7 +115,9 @@ export function installerLeMateriel({ etat }) {
           const def = OPTIONS[f.id][cle];
           o[cle] = def.liste
             ? inp.value.split(/[^0-9]+/).filter(Boolean).map(Number)
-            : (def.type === 'number' ? Number(inp.value) : inp.value);
+            : def.type === 'number' ? Number(inp.value)
+            : def.booleen ? inp.value === 'oui'
+            : inp.value;
         }
         return o;
       };
@@ -107,7 +128,9 @@ export function installerLeMateriel({ etat }) {
         b.type = 'button';
         b.onclick = () => {
           const r = f.faire(lire());
-          exporterBlocs([...titreBloc({ exercice: r.titre }), ...r.blocs,
+          exporterBlocs([...titreBloc({ exercice: r.titre, emoji: f.emoji || t.emoji,
+                                        couleur: t.trait, fond: t.fond }),
+                         ...r.blocs,
                          ...pied({ exercice: r.titre, quand: leJour() })],
                         r.titre, quoi);
         };
@@ -165,16 +188,20 @@ export function installerLeMateriel({ etat }) {
     const format = FORMATS[d.format] || FORMATS.cartes;
     const aUnDos = items.some((x) => x.droite);
     const blocs = [
-      ...titreBloc({ exercice: `${d.nom}${sujet ? ` — ${sujet}` : ''}` }),
+      ...titreBloc({ exercice: `${d.nom}${sujet ? ` — ${sujet}` : ''}`,
+                     emoji: '🃏', couleur: laFamille('Français').trait,
+                     fond: laFamille('Français').fond }),
       { type: 'paragraphe', discret: true, morceaux: [{ texte:
         `${items.length} items · ${format.nom}${ecartees.length
           ? ` · ${ecartees.length} ligne(s) écartée(s) : ce n'étaient pas des items` : ''}` }] },
-      planche(items.map((x) => x.gauche), format)
+      // La même teinte au recto et au verso : une carte retournée reste la sienne.
+      planche(items.map((x) => x.gauche), format, { fond: (v, i) => pastel(i) })
     ];
     if (aUnDos) {
       blocs.push({ type: 'saut' });
       blocs.push({ type: 'titre', niveau: 2, morceaux: [{ texte: 'VERSO — imprimer au dos' }] });
-      blocs.push(planche(items.map((x) => x.droite), format, { miroir: true }));
+      blocs.push(planche(items.map((x) => x.droite), format,
+                         { miroir: true, fond: (v, i) => pastel(i) }));
     }
     blocs.push(...pied({ exercice: d.nom, quand: leJour(), modele: j.fournisseur }));
 
@@ -201,7 +228,25 @@ const OPTIONS = {
   'listes-mots': { de: { nom: 'De la semaine', valeur: 1, type: 'number', min: 1, max: 36 },
                    a: { nom: 'À la semaine', valeur: 6, type: 'number', min: 1, max: 36 } },
   'programme-poesies': { de: { nom: 'De la semaine', valeur: 1, type: 'number', min: 1, max: 36 },
-                         a: { nom: 'À la semaine', valeur: 36, type: 'number', min: 1, max: 36 } }
+                         a: { nom: 'À la semaine', valeur: 36, type: 'number', min: 1, max: 36 } },
+  'coloriage-magique': {
+    motif: { nom: 'Dessin', valeur: 'etoile',
+             choix: MOTIFS.map((m) => ({ valeur: m.id, nom: `${m.emoji} ${m.nom}` })) },
+    graine: { nom: 'Tirage', valeur: 1, type: 'number', min: 1, max: 999 },
+    /*
+     * LE CORRIGÉ EST UN CHOIX EXPLICITE, et il change le nom du fichier. C'est la même
+     * règle que pour les évaluations : on ne doit jamais imprimer l'un en croyant
+     * imprimer l'autre.
+     */
+    corrige: { nom: 'Ce qu\'on imprime', valeur: 'non', booleen: true,
+               choix: [{ valeur: 'non', nom: 'la fiche à colorier' },
+                       { valeur: 'oui', nom: 'le corrigé de l\'enseignant' }] }
+  },
+  'points-a-relier': {
+    motif: { nom: 'Dessin', valeur: 'etoile',
+             choix: MOTIFS.map((m) => ({ valeur: m.id, nom: `${m.emoji} ${m.nom}` })) },
+    combien: { nom: 'Points', valeur: 28, type: 'number', min: 8, max: 60 }
+  }
 };
 
 /* ══════════════════════════════════════════════════════════════════════════

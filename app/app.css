@@ -434,10 +434,22 @@ button{font:inherit;cursor:pointer}
 }
 .exportBlocs{ margin:.6rem 0; }
 
-/* Trente fiches se rangent, sinon c'est le catalogue qu'on s'interdit. */
+/* Trente fiches se rangent, sinon c'est le catalogue qu'on s'interdit.
+
+   La couleur de l'en-tête est celle du bandeau imprimé, et c'est tout l'intérêt :
+   on cherche « la bleue » à l'écran et on la retrouve bleue dans la pile de feuilles.
+   Le nom de la famille reste écrit — la teinte accompagne, elle ne remplace pas. */
 .famille{
-  font-size:.8rem; text-transform:uppercase; letter-spacing:.06em;
-  color:var(--encre3); margin:1rem 0 .1rem; font-weight:700;
+  font-size:.82rem; text-transform:uppercase; letter-spacing:.06em;
+  margin:1.1rem 0 .3rem; font-weight:700;
+  padding:.4rem .7rem; border-radius:999px; justify-self:start;
+}
+
+/* Un choix fermé — un dessin, une fiche ou son corrigé — se fait dans un menu. */
+.reglages-fabrique select{
+  font:inherit; font-size:.9rem; padding:.3rem .4rem; min-width:9rem;
+  border:1px solid var(--trait2); border-radius:8px;
+  background:var(--papier); color:var(--encre);
 }
 #materielCherche{
   width:100%; font:inherit; padding:.5rem; border:1px solid var(--trait);
