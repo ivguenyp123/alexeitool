@@ -16,7 +16,7 @@
  * fichiers séparés, deux noms de fichier différents : à aucun moment on ne peut envoyer
  * l'un en croyant envoyer l'autre.
  */
-import { FABRIQUES, DEMANDES, consigneDe, lireLesItems, planche, FORMATS }
+import { parFamille, DEMANDES, consigneDe, lireLesItems, planche, FORMATS }
   from '../lib/materiel.js';
 import { fabriquer, lireLesExercices, ficheEleve, corrige, CONSIGNE_MODELE }
   from '../lib/exercices.js';
@@ -47,7 +47,24 @@ export function installerLeMateriel({ etat }) {
     const zone = $('materielListe');
     zone.textContent = '';
 
-    for (const f of FABRIQUES) {
+    /*
+     * ── GROUPÉES PAR FAMILLE, ET FILTRABLES ───────────────────────────────
+     *
+     * Trente fiches en vrac, c'est exactement le catalogue que le reste de l'outil
+     * refuse : une grille qu'on fait défiler est une machine à ne pas trouver. Ici on
+     * cherche du matériel — c'est un magasin de fournitures, pas un routage par
+     * intention — mais ça ne dispense pas de le ranger.
+     */
+    const filtre = ($('materielCherche').value || '').toLowerCase().trim();
+    let montrees = 0;
+
+    for (const famille of parFamille()) {
+      const fiches = famille.fiches.filter((f) => !filtre
+        || `${f.nom} ${f.pour} ${f.mots.join(' ')}`.toLowerCase().includes(filtre));
+      if (!fiches.length) continue;
+      zone.append(el('h3', 'famille', `${famille.nom} — ${fiches.length}`));
+      for (const f of fiches) {
+      montrees += 1;
       const carte = el('div', 'fabrique');
       carte.append(el('b', null, f.nom));
       carte.append(el('small', 'lit', f.pour));
@@ -72,7 +89,9 @@ export function installerLeMateriel({ etat }) {
       if (reglages.children.length) carte.append(reglages);
 
       const lire = () => {
-        const o = { niveau: niveau() };
+        // La liste de classe suit : les étiquettes au nom des élèves en ont besoin, et
+        // elle est fabriquée ICI, hors ligne — rien ne part nulle part.
+        const o = { niveau: niveau(), classe: etat.classe || [] };
         for (const [cle, inp] of Object.entries(champs)) {
           const def = OPTIONS[f.id][cle];
           o[cle] = def.liste
@@ -96,6 +115,11 @@ export function installerLeMateriel({ etat }) {
       }
       carte.append(boutons);
       zone.append(carte);
+      }
+    }
+    if (!montrees) {
+      zone.append(el('p', 'note', `Rien ne correspond à « ${filtre} ». `
+        + 'Essaie « carte », « table », « mesure », « poésie »…'));
     }
 
     /* Ce que le modèle doit remplir : un sujet, un format, et c'est tout. */
@@ -110,6 +134,7 @@ export function installerLeMateriel({ etat }) {
   }
 
   $('materielNiveau').onchange = rendre;
+  $('materielCherche').oninput = rendre;
 
   $('materielDemander').onclick = async () => {
     const d = DEMANDES.find((x) => x.id === $('materielFormat').value);

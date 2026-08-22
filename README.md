@@ -212,13 +212,28 @@ c'est de **fabriquer**. Trente cartes à découper, une bande numérique, les
 étiquettes de la semaine — chacun prend une heure à mettre en page, et il en faut
 un nouveau chaque semaine.
 
+**Trente fiches**, rangées en six familles — calcul, numération, mesures,
+français, géométrie, la classe — avec un champ de recherche. Trente en vrac
+seraient exactement le catalogue que le reste de l'outil refuse.
+
+Beaucoup viennent de **Montessori** : table de Pythagore, cartes de numération
+superposables, symboles grammaticaux, alphabet mobile, cartes de nomenclature.
+Ce matériel a une propriété rare — il est **autocorrectif** : l'enfant voit
+lui-même que ça tombe juste, sans qu'un adulte vienne le lui dire. Dans une
+classe à deux niveaux, où l'enseignant est avec l'autre groupe la moitié du
+temps, ce n'est pas un détail : c'est ce qui rend l'autonomie possible.
+
 Deux familles, et elles ne se mélangent pas. **Ce qui se calcule** est fabriqué
-en code : tables en affiche, cartes de multiplication recto-verso, bande
-numérique, tableaux de numération et de conversion, dominos. Une bande numérique
-où un nombre manque, personne ne le voit — et elle sert toute l'année. **Ce qui
-demande du contenu** part au modèle : étiquettes de vocabulaire, cartes de
-conjugaison, memory. La mise en page reste ici : un modèle qui dessine des
+en code : les tables, la table de Pythagore, les bandes numériques, les
+conversions, les dominos, la monnaie, les patrons, le papier pointé. Une bande
+numérique où un nombre manque, personne ne le voit — et elle sert toute l'année.
+**Ce qui demande du contenu** part au modèle : étiquettes de vocabulaire, cartes
+de conjugaison, memory. La mise en page reste ici : un modèle qui dessine des
 tableaux en caractères rend des planches inutilisables.
+
+Les couleurs Montessori sont **nommées**, pas seulement affichées : une
+photocopieuse d'école est en noir et blanc, et un tableau dont le sens tient dans
+la couleur y ressort en huit gris identiques.
 
 Deux détails qui décident si le résultat est utilisable : le verso d'une planche
 est imprimé **en miroir**, sans quoi chaque réponse tombe derrière la mauvaise

@@ -6,7 +6,8 @@ import { blocsDeFiche, blocsDeCorrige, aucuneReponse } from '../lib/fiche.js';
 import { nu } from '../lib/miseenforme.js';
 import { laListe, lAnnee, etat, SEMAINES, PAR_JOUR } from '../lib/mots.js';
 import { lAnneeDouble, protegees, libre, laPoesie } from '../lib/poesies.js';
-import { FABRIQUES, planche, FORMATS, lireLesItems } from '../lib/materiel.js';
+import { FABRIQUES, parFamille, planche, FORMATS, lireLesItems,
+         enLettres } from '../lib/materiel.js';
 
 describe('les réponses se calculent, elles ne se demandent pas', () => {
   test('chaque générateur rend des réponses JUSTES', () => {
@@ -368,5 +369,94 @@ describe('l\'inventaire tient dans une année', () => {
   test('le compte annoncé est le compte réel', () => {
     // 36 semaines × 20 mots × 2 niveaux.
     assert.deepEqual(etat().map((e) => e.mots), [720, 720]);
+  });
+});
+
+describe('le catalogue entier tient debout', () => {
+  test('chaque fiche produit quelque chose, dans les deux niveaux', () => {
+    for (const f of FABRIQUES) {
+      for (const niveau of ['CE2', 'CM1']) {
+        const r = f.faire({ niveau, classe: [{ prenom: 'Ambre' }, { prenom: 'Tom' }] });
+        assert.ok(r.titre, `${f.id} : pas de titre`);
+        assert.ok(r.blocs.length, `${f.id} (${niveau}) : aucun bloc`);
+      }
+    }
+  });
+
+  test('chaque fiche est rangée dans une famille et sait se faire trouver', () => {
+    // Trente fiches en vrac, c'est le catalogue qu'on s'interdit.
+    for (const f of FABRIQUES) {
+      assert.ok(f.famille, `${f.id} n'a pas de famille`);
+      assert.ok(f.mots?.length >= 2, `${f.id} : trop peu de mots pour être cherchée`);
+      assert.ok(f.pour?.length > 10, `${f.id} : on ne sait pas à quoi elle sert`);
+    }
+    assert.ok(parFamille().length >= 5);
+  });
+
+  test('la table de Pythagore est juste, et ses trous sont vraiment vides', () => {
+    const pleine = FABRIQUES.find((f) => f.id === 'pythagore').faire({});
+    const rangs = pleine.blocs[0].rangs;
+    for (let l = 1; l <= 10; l++) {
+      for (let c = 1; c <= 10; c++) {
+        assert.equal(rangs[l][c][0], String(l * c), `${l} × ${c} est faux`);
+      }
+    }
+    const trouee = FABRIQUES.find((f) => f.id === 'pythagore').faire({ aTrous: true });
+    const vides = trouee.blocs[0].rangs.flat().filter((c) => c[0] === '').length;
+    assert.ok(vides > 5 && vides < 60, `${vides} trous : trop, ou pas assez`);
+  });
+
+  test('« le compte est bon » a toujours une solution', () => {
+    /*
+     * Un but inatteignable, c'est une classe entière qui cherche pendant dix minutes ce
+     * qui n'existe pas. Le but est CONSTRUIT à partir des plaques, jamais tiré au hasard.
+     */
+    const j = FABRIQUES.find((f) => f.id === 'compte-est-bon').faire({ combien: 20 });
+    for (const rang of j.blocs[0].rangs.slice(1)) {
+      const plaques = rang[0][0].split(/\s+/).map(Number);
+      const but = Number(rang[1][0]);
+      assert.equal(plaques.length, 6);
+      assert.ok(but > 0 && but < 10000, `but invraisemblable : ${but}`);
+    }
+  });
+
+  test('les nombres en lettres suivent les règles françaises', () => {
+    // « quatre-vingts » prend un s, « quatre-vingt-un » non. Une règle ne se trompe pas
+    // une fois sur cinquante ; un modèle, si.
+    assert.equal(enLettres(21), 'vingt et un');
+    assert.equal(enLettres(71), 'soixante et onze');
+    assert.equal(enLettres(80), 'quatre-vingts');
+    assert.equal(enLettres(81), 'quatre-vingt-un');
+    assert.equal(enLettres(100), 'cent');
+    assert.equal(enLettres(200), 'deux cents');
+    assert.equal(enLettres(201), 'deux cent un');
+    assert.equal(enLettres(1000), 'mille');
+    assert.equal(enLettres(3562), 'trois mille cinq cent soixante-deux');
+  });
+
+  test('l\'alphabet mobile a assez de lettres pour écrire un mot long', () => {
+    const a = FABRIQUES.find((f) => f.id === 'alphabet-mobile').faire({});
+    const lettres = a.blocs.find((b) => b.cartes).rangs.flat().map((c) => c[0]).filter(Boolean);
+    for (const c of 'maitresse') {
+      const dispo = lettres.filter((x) => x === c).length;
+      const besoin = 'maitresse'.split('').filter((x) => x === c).length;
+      assert.ok(dispo >= besoin, `pas assez de « ${c} » pour écrire « maitresse »`);
+    }
+  });
+
+  test('les étiquettes au nom des élèves refusent de deviner une classe', () => {
+    const f = FABRIQUES.find((x) => x.id === 'etiquettes-classe');
+    const vide = f.faire({ classe: [] });
+    assert.match(nu(vide.blocs[0]), /liste de classe n'est pas saisie/);
+    const pleine = f.faire({ classe: [{ prenom: 'Ambre' }], exemplaires: 4 });
+    const noms = pleine.blocs[0].rangs.flat().map((c) => c[0]).filter(Boolean);
+    assert.equal(noms.filter((n) => n === 'Ambre').length, 4);
+  });
+
+  test('la bande numérique et le quadrillage n\'ont aucun trou', () => {
+    const q = FABRIQUES.find((f) => f.id === 'quadrillage').faire({ colonnes: 16, lignes: 22 });
+    const rangs = q.blocs[0].rangs;
+    assert.equal(rangs.length, 22);
+    for (const r of rangs) assert.equal(r.length, 16);
   });
 });

@@ -132,6 +132,7 @@ function jetons(bloc) {
     for (const bout of String(m.texte).split(/(\s+)/)) {
       if (bout === '') continue;
       out.push({ texte: bout, rouge: m.rouge, barre: m.barre, souligne: m.souligne,
+                 couleur: m.couleur,
                  gras: m.gras || bloc.type === 'titre', taille: m.taille });
     }
   }
@@ -202,13 +203,14 @@ function planDuTableau(ctx, bloc, large) {
          * ailleurs propre.
          */
         const morceaux = enMorceaux(texte)
-          .map((m) => ({ ...m, gras: m.gras || iRang === 0 }));
+          .map((m) => ({ ...m, gras: m.gras || (iRang === 0 && !bloc.cartes) }));
         lignes.push(...enLignes(ctx, { type: 'paragraphe', morceaux }, colonne));
       }
       return lignes;
     });
-    const haut = Math.max(1, ...cells.map((c) => c.length)) * 28 + 14;
-    return { cells, haut, entete: iRang === 0 };
+    const haut = Math.max(1, ...cells.map((c) => c.length)) * 28 + (bloc.cartes ? 40 : 14);
+    // Pas d'en-tête sur une planche de cartes : ce sont douze cartes égales.
+    return { cells, haut, entete: iRang === 0 && !bloc.cartes };
   });
   return { plan, colonne, gouttiere: GOUTTIERE,
            hauteur: plan.reduce((s, r) => s + r.haut, 0) + 10 };
@@ -254,14 +256,32 @@ function dessiner(blocs) {
     if (p.tableau) {
       const { plan: rangs, colonne, gouttiere } = p.tableau;
       for (const rang of rangs) {
-        // Le filet horizontal sous chaque rangée : sans lui, deux colonnes de longueurs
-        // différentes n'ont plus de ligne de lecture commune.
-        ctx.strokeStyle = '#E2DED5';
+        /*
+         * ── LES TRAITS DE COUPE EXISTENT AUSSI SUR L'IMAGE ──────────────────
+         *
+         * Ils étaient dessinés en Word et absents du PNG : une planche de cartes sans
+         * trait de coupe est une feuille qu'on ne sait pas découper. C'est pourtant tout
+         * ce qui la rend utilisable.
+         */
+        ctx.strokeStyle = p.bloc.decouper ? '#9A9A9A' : '#E2DED5';
         ctx.lineWidth = 1;
+        if (p.bloc.decouper) ctx.setLineDash([5, 4]); else ctx.setLineDash([]);
         ctx.beginPath();
         ctx.moveTo(MARGE, y - 6);
         ctx.lineTo(LARGEUR - MARGE, y - 6);
         ctx.stroke();
+
+        // Et les traits verticaux, sinon on ne sait pas où couper entre deux cartes.
+        if (p.bloc.decouper) {
+          for (let i = 1; i < rang.cells.length; i++) {
+            const x = MARGE + i * (colonne + gouttiere) - gouttiere / 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y - 6);
+            ctx.lineTo(x, y + rang.haut - 6);
+            ctx.stroke();
+          }
+        }
+        ctx.setLineDash([]);
 
         rang.cells.forEach((lignes, i) => {
           let yc = y;
@@ -297,7 +317,8 @@ function dessiner(blocs) {
       for (const j of ligne) {
         const { police, taille } = POLICE(p.bloc, j);
         ctx.font = police;
-        ctx.fillStyle = j.rouge || p.bloc.alerte ? ROUGE
+        ctx.fillStyle = j.couleur ? `#${j.couleur}`
+          : j.rouge || p.bloc.alerte ? ROUGE
           : p.bloc.type === 'titre' ? ACCENT
           : p.bloc.discret ? GRIS : '#22201C';
         ctx.fillText(j.texte, x, y);
