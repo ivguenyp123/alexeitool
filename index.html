@@ -34,6 +34,8 @@
     -->
     <div class="actionsTete">
       <button class="lien pile" id="ouvrirPile" type="button">La pile à corriger</button>
+      <button class="lien" id="ouvrirMateriel" type="button">Matériel</button>
+      <button class="lien" id="ouvrirExercices" type="button">Exercices</button>
       <button class="lien" id="voirTout" type="button">Voir les quatre jours</button>
     </div>
   </div>
@@ -140,6 +142,94 @@
     <div class="boutons">
       <span class="sp"></span>
       <button type="button" class="plein" id="fermerPasEncore">Compris</button>
+    </div>
+  </div>
+</dialog>
+
+<!--
+  LE MATÉRIEL — ce qui s'imprime et se découpe.
+
+  Ce qui coûte à un enseignant, ce n'est pas de savoir quoi faire : c'est de FABRIQUER.
+  Trente cartes, une bande numérique, les étiquettes de la semaine.
+-->
+<dialog id="materiel" class="edition feuille">
+  <div class="dedansFeuille">
+    <h2>Matériel à imprimer</h2>
+    <label class="precision">
+      <span>Pour quel niveau</span>
+      <select id="materielNiveau">
+        <option value="CE2">CE2</option>
+        <option value="CM1">CM1</option>
+      </select>
+    </label>
+
+    <div class="fabriques" id="materielListe"></div>
+
+    <!--
+      L'AUTRE FAMILLE : celle dont le contenu ne se calcule pas. Le modèle donne la
+      liste, la mise en page reste ici — un modèle qui dessine des tableaux en
+      caractères rend des planches inutilisables.
+    -->
+    <details class="reglages">
+      <summary>Fabriquer des cartes sur un sujet précis</summary>
+      <label class="precision">
+        <span>Quel format</span>
+        <select id="materielFormat"></select>
+      </label>
+      <label class="precision">
+        <span>Sur quel sujet</span>
+        <input type="text" id="materielSujet"
+               placeholder="les homophones a / à, les fractions, le vocabulaire de la forêt…">
+      </label>
+      <label class="precision">
+        <span>Combien d'items</span>
+        <input type="number" id="materielCombien" value="24" min="4" max="60">
+      </label>
+      <button type="button" class="plein" id="materielDemander">Fabriquer</button>
+    </details>
+
+    <div class="boutons">
+      <span class="sp"></span>
+      <button type="button" class="plein" id="fermerMateriel">Fermer</button>
+    </div>
+  </div>
+</dialog>
+
+<!--
+  LES EXERCICES — une phrase, une fiche.
+
+  Et DEUX documents : la fiche des élèves, vide, et le corrigé, à part. Un corrigé
+  imprimé au bas de la fiche est une catastrophe silencieuse — on s'en aperçoit quand un
+  enfant le dit tout haut.
+-->
+<dialog id="exercices" class="edition feuille">
+  <div class="dedansFeuille">
+    <h2>Une fiche d'exercices</h2>
+    <label class="precision">
+      <span>Qu'est-ce que tu veux ?</span>
+      <input type="text" id="exoDemande"
+             placeholder="une évaluation des multiplications de la table de 5">
+    </label>
+    <div class="rangee">
+      <label>Niveau
+        <select id="exoNiveau">
+          <option value="CE2">CE2</option>
+          <option value="CM1">CM1</option>
+        </select></label>
+      <!--
+        Changer ce chiffre redonne une AUTRE fiche du même type. C'est ce qui permet de
+        donner deux sujets différents aux deux moitiés d'une classe sans y penser.
+      -->
+      <label>Tirage
+        <input type="number" id="exoGraine" value="1" min="1" max="999"></label>
+    </div>
+    <button type="button" class="corriger" id="exoLancer">Fabriquer la fiche</button>
+    <p class="note" id="exoEtat"></p>
+    <div id="exoBoutons"></div>
+
+    <div class="boutons">
+      <span class="sp"></span>
+      <button type="button" class="plein" id="fermerExercices">Fermer</button>
     </div>
   </div>
 </dialog>

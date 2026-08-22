@@ -41,6 +41,7 @@ import { installerLExport } from './export.js';
 import { installerLaPile } from './pile-ecran.js';
 import { ouvrirPorte } from './porte.js';
 import { installerLaClasse } from './classe-ecran.js';
+import { installerLeMateriel, installerLesExercices } from './fiches-ecran.js';
 
 const $ = (id) => document.getElementById(id);
 const el = (t, c, x) => {
@@ -566,6 +567,8 @@ const classeEcran = installerLaClasse({ etat, sauver: () => ecrire(etat), apres:
 installerLaPile({ etat, sauver: () => ecrire(etat), attendus: () => ATTENDUS });
 
 installerLExport();
+installerLeMateriel({ etat });
+installerLesExercices();
 
 rendre();
 verifierLaCle();

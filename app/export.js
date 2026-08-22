@@ -342,6 +342,28 @@ function dessiner(blocs) {
 
 /* ── Le branchement ────────────────────────────────────────────────────────── */
 
+/**
+ * ── EXPORTER DES BLOCS DÉJÀ MIS EN PAGE ─────────────────────────────────────
+ *
+ * Les fiches d'exercices et le matériel ne passent pas par l'écran de réponse : ils sont
+ * construits en code, blocs par blocs, et n'ont aucune raison de faire l'aller-retour par
+ * du texte. Ce chemin-là les prend tels quels.
+ *
+ * @param {string} quoi  'word' | 'image'
+ */
+export function exporterBlocs(blocs, nom, quoi = 'word') {
+  const base = String(nom || 'fiche').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+  const fichier = `${base || 'fiche'}-${new Date().toISOString().slice(0, 10)}`;
+
+  if (quoi === 'image') {
+    dessiner(blocs).toBlob((b) => b && offrir(b, `${fichier}.png`, 'image/png'), 'image/png');
+    return;
+  }
+  offrir(docx(blocs), `${fichier}.docx`,
+         'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+}
+
 export function installerLExport() {
   const dispo = () => {
     const rien = !($('sortieTexte').textContent || '').trim();

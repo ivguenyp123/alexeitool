@@ -390,3 +390,46 @@ button{font:inherit;cursor:pointer}
 /* Les sorties d'un document : présentes, mais jamais devant « Fermer ». */
 #sortieWord, #sortieImage{ white-space:nowrap; }
 #sortieWord[disabled], #sortieImage[disabled]{ opacity:.45; cursor:not-allowed; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MATÉRIEL ET EXERCICES
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.fabriques{ display:grid; gap:.6rem; margin:.8rem 0; }
+.fabrique{
+  border:1px solid var(--trait); border-radius:var(--r); padding:.7rem .8rem;
+  background:var(--carte); display:grid; gap:.35rem;
+}
+.fabrique > b{ font-size:1rem; }
+.fabrique .lit{ color:var(--encre2); font-size:.86rem; }
+.reglages-fabrique{ display:flex; gap:.5rem; flex-wrap:wrap; }
+.reglages-fabrique label{ font-size:.82rem; color:var(--encre2); display:grid; gap:.15rem; }
+.reglages-fabrique input{
+  font:inherit; font-size:.9rem; padding:.3rem .4rem; width:9rem;
+  border:1px solid var(--trait2); border-radius:8px;
+  background:var(--papier); color:var(--encre);
+}
+
+#materielNiveau, #materielFormat, #materielSujet, #materielCombien,
+#exoDemande, #exoNiveau, #exoGraine{
+  width:100%; font:inherit; padding:.5rem; border:1px solid var(--trait);
+  border-radius:10px; background:var(--carte); color:var(--encre);
+}
+
+/* Les deux exports d'une fiche NE SE RESSEMBLENT PAS. Le corrigé est en brun, à part :
+   on ne doit jamais cliquer l'un en croyant cliquer l'autre. */
+#exoBoutons{ display:grid; gap:.5rem; margin-top:.8rem; }
+#exoBoutons .plein{ background:var(--accent); color:var(--papier); border:0; }
+#exoBoutons .corrigeBouton{
+  background:transparent; color:var(--cm1); border:1px solid var(--cm1);
+  font:inherit; font-weight:600; padding:.6rem .8rem; border-radius:10px; cursor:pointer;
+}
+#exoBoutons .plein{ font:inherit; font-weight:700; padding:.65rem .8rem;
+  border-radius:10px; cursor:pointer; }
+
+.apercuFiche{
+  margin-top:.6rem; padding:.6rem .7rem; border-radius:10px;
+  background:var(--creux); font-size:.9rem; color:var(--encre2);
+  display:grid; gap:.15rem;
+}
+.exportBlocs{ margin:.6rem 0; }

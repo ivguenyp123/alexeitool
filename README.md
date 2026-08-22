@@ -205,6 +205,63 @@ rendant la pile. Avec la règle qui va avec, répétée au modèle à chaque env
 Aucune de ces cinq consignes ne peut produire une note, un rang, ni un groupe de
 niveau — et c'est vérifié par les tests, pas seulement écrit dans le texte.
 
+### Le matériel à imprimer
+
+Ce qui coûte le plus cher à un enseignant, ce n'est pas de savoir quoi faire :
+c'est de **fabriquer**. Trente cartes à découper, une bande numérique, les
+étiquettes de la semaine — chacun prend une heure à mettre en page, et il en faut
+un nouveau chaque semaine.
+
+Deux familles, et elles ne se mélangent pas. **Ce qui se calcule** est fabriqué
+en code : tables en affiche, cartes de multiplication recto-verso, bande
+numérique, tableaux de numération et de conversion, dominos. Une bande numérique
+où un nombre manque, personne ne le voit — et elle sert toute l'année. **Ce qui
+demande du contenu** part au modèle : étiquettes de vocabulaire, cartes de
+conjugaison, memory. La mise en page reste ici : un modèle qui dessine des
+tableaux en caractères rend des planches inutilisables.
+
+Deux détails qui décident si le résultat est utilisable : le verso d'une planche
+est imprimé **en miroir**, sans quoi chaque réponse tombe derrière la mauvaise
+carte ; et les dominos **bouclent** — c'est vérifié, pas espéré, parce qu'un jeu
+où il reste des pièces à la fin est un jeu cassé.
+
+**Les listes de mots** : trente-six semaines par niveau, vingt mots, cinq par
+jour. Groupées par **règle** et non au hasard — une liste tirée au sort
+s'apprend mot à mot et s'oublie en octobre, une liste qui porte le son [ɛ] ou le
+pluriel en -aux s'apprend d'un bloc. Ce n'est pas l'échelle Dubois-Buyse ni
+aucune liste officielle, et le fichier le dit.
+
+**Le programme de poésies** : une par semaine, pour chaque niveau, avec l'auteur
+et pourquoi elle est là. **Aucun texte n'est reproduit** — un poème reste protégé
+soixante-dix ans après la mort de son auteur, et Prévert comme Maurice Carême,
+les deux plus récités à l'école, le sont jusqu'en 2048 et 2049. L'outil calcule
+le statut plutôt que de le recopier, signale ce qui est encore sous droits, et
+laisse récupérer le texte en ligne.
+
+### Une fiche d'exercices, et elle est vide
+
+On tape la phrase qu'on aurait dite — « une évaluation des multiplications de la
+table de 5 » — et il sort **deux documents séparés** : la fiche des élèves, sans
+aucune réponse, avec la place pour écrire ; et le corrigé, à part, qui porte son
+nom en première ligne.
+
+Un corrigé imprimé au bas de la fiche est une catastrophe silencieuse : on
+photocopie vingt-six exemplaires le matin, on les distribue, et on s'en aperçoit
+quand un enfant le dit tout haut. Les deux ne sont même pas construits par la
+même fonction, et la fiche est bâtie à partir d'une structure **qui ne contient
+pas les réponses** — on ne peut pas oublier d'enlever ce qu'on n'a jamais eu.
+
+**Ce qui se calcule ne part pas au fournisseur.** Tables, opérations posées,
+divisions euclidiennes, conversions, périmètres, durées : tout est généré ici, et
+chaque réponse est vérifiée par les tests. Une évaluation sur la table de 5 a
+vingt réponses ; un modèle qui en rate une produit un corrigé impeccable et faux,
+que personne ne relit. Le reste — conjugaison, vocabulaire, problèmes — va au
+modèle, dans une forme qui permet de séparer l'énoncé de la réponse.
+
+Le champ **Tirage** change le jeu d'exercices sans changer le type : deux sujets
+pour les deux moitiés de la classe, ou réimprimer à l'identique la fiche qu'on a
+perdue.
+
 ### Les modules
 
 Des modules purs, testés, sans aucune dépendance. Ce sont les fondations qui
