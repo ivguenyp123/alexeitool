@@ -349,3 +349,24 @@ describe('ce que le modèle doit rendre pour une fiche', () => {
     assert.equal(items.length, 0);
   });
 });
+
+describe('l\'inventaire tient dans une année', () => {
+  test('chaque semaine fait un multiple de cinq mots', () => {
+    /*
+     * Cinq mots par jour, quatre jours. Une semaine de dix-neuf mots donne un jour à
+     * quatre — ça ne se voit pas dans le code, ça se voit dans le cahier de l'enfant.
+     * C'est arrivé : en retirant un caractère parasite, j'ai laissé la liste à 19.
+     */
+    for (const niveau of ['CE2', 'CM1']) {
+      for (const l of lAnnee(niveau)) {
+        assert.equal(l.mots.length % PAR_JOUR, 0,
+          `${niveau} semaine ${l.semaine} : ${l.mots.length} mots`);
+      }
+    }
+  });
+
+  test('le compte annoncé est le compte réel', () => {
+    // 36 semaines × 20 mots × 2 niveaux.
+    assert.deepEqual(etat().map((e) => e.mots), [720, 720]);
+  });
+});
