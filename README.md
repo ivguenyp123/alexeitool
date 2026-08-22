@@ -75,6 +75,11 @@ perdre la seule chose qui le rend utile.
 npm start          # puis http://localhost:8080
 ```
 
+Si le port est déjà pris, le serveur ne rend pas une trace d'appels : il va voir
+qui répond. Neuf fois sur dix c'est l'outil lui-même, lancé la veille et jamais
+arrêté — il le dit et redonne l'adresse à ouvrir. Sinon il propose
+`PORT=8081 npm start`.
+
 On ouvre, **on voit son jour** — celui d'aujourd'hui, pas lundi. Pas d'accueil,
 pas de menu, pas de connexion. Le reste de l'outil viendra se greffer autour de
 cet écran, jamais devant.

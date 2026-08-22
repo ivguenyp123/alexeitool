@@ -147,7 +147,7 @@ async function appelerLeModele(req, res) {
   }
 }
 
-createServer(async (req, res) => {
+const serveur = createServer(async (req, res) => {
   if (req.url === '/api/modele' && req.method === 'POST') return appelerLeModele(req, res);
   // L'état, pour que l'écran sache s'il peut proposer quoi que ce soit — SANS la clé.
   if (req.url === '/api/etat') {
@@ -183,7 +183,58 @@ createServer(async (req, res) => {
     res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
     res.end('Fichier introuvable.');
   }
-}).listen(PORT, () => {
+});
+
+/**
+ * ── LE PORT EST DÉJÀ PRIS ───────────────────────────────────────────────────
+ *
+ * Node répond à ça par une trace d'appels de quinze lignes qui commence par
+ * `EADDRINUSE`. Devant, on ne sait pas si l'outil est cassé, si on a mal installé
+ * quelque chose, ou s'il faut recommencer depuis le début.
+ *
+ * Neuf fois sur dix, la réponse est : L'OUTIL TOURNE DÉJÀ. Un `npm start` de la veille,
+ * un onglet de terminal refermé sans arrêter le serveur. On va donc voir qui répond sur
+ * ce port avant de dire quoi que ce soit — et si c'est nous, la bonne nouvelle est qu'il
+ * n'y a rien à réparer, juste un onglet à ouvrir.
+ */
+async function quiRepondSur(port) {
+  try {
+    const stop = AbortSignal.timeout(1500);
+    const r = await fetch(`http://127.0.0.1:${port}/index.html`, { signal: stop });
+    const texte = await r.text();
+    return texte.includes('Ma semaine — CE2-CM1') ? 'nous' : 'autre';
+  } catch {
+    return 'inconnu';
+  }
+}
+
+serveur.on('error', async (e) => {
+  if (e.code !== 'EADDRINUSE') throw e;
+  const qui = await quiRepondSur(PORT);
+  console.error(['', qui === 'nous'
+    ? [
+        `L'outil TOURNE DÉJÀ sur le port ${PORT}. Il n'y a rien de cassé.`,
+        '',
+        `  Ouvre http://localhost:${PORT}`,
+        '',
+        'Si tu veux quand même en relancer un neuf : arrête l\'autre (Ctrl-C dans',
+        'le terminal où il tourne), ou lance celui-ci sur un autre port :',
+        '',
+        `  PORT=${PORT + 1} npm start`
+      ].join('\n')
+    : [
+        `Le port ${PORT} est déjà pris par un autre programme.`,
+        '',
+        'Lance l\'outil sur un port libre :',
+        '',
+        `  PORT=${PORT + 1} npm start`,
+        '',
+        `Il s\'ouvrira alors sur http://localhost:${PORT + 1}.`
+      ].join('\n'), ''].join('\n'));
+  process.exit(1);
+});
+
+serveur.listen(PORT, () => {
   console.log(`Ouvre http://localhost:${PORT}`);
   console.log(CLE
     ? 'Clé DeepSeek chargée depuis l\'environnement.'
